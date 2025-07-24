@@ -1,0 +1,79 @@
+src/
+├── app/
+│   ├── (marketing)/                         # Grupo de rutas públicas (landing pages, blog, etc.)
+│   │   ├── landing/                         # Ruta de la landing principal → /landing
+│   │   │   ├── page.tsx                     # Página principal de la landing
+│   │   │   ├── metadata.ts                  # Metadatos SEO específicos de esta ruta
+│   │   │   └── layout.tsx                   # Layout específico (si se requiere diferente)
+│   │   └── robots.txt/                      # Robots.txt si lo quieres servir como ruta
+│   ├── sitemap.xml/                         # Generación o ruta estática de sitemap
+│   ├── favicon.ico                          # Ícono del sitio
+│   ├── manifest.json                        # Web manifest para PWA / SEO
+│   ├── globals.css                          # Estilos globales
+│   └── layout.tsx                           # Layout raíz de la app
+│
+├── components/                              # Componentes UI reutilizables
+│   ├── common/                              # Botones, secciones, etc.
+│   ├── layout/                              # AppBar, Footer, Sidebar
+│   └── landing/                             # Secciones específicas para la landing
+│       ├── Hero.tsx
+│       ├── About.tsx
+│       ├── Features.tsx
+│       ├── CTA.tsx
+│       └── Testimonials.tsx
+│
+├── constants/                               # Constantes globales (colores, textos, rutas, etc.)
+│   └── seo.ts                               # Configuraciones SEO comunes (por ejemplo, para `metadata`)
+│
+├── lib/                                     # Funciones utilitarias (formateo, fechas, SEO helpers)
+│   ├── analytics.ts                         # Google Analytics / Plausible
+│   ├── seo.ts                               # Generación dinámica de metadatos
+│   └── utils.ts
+│
+├── types/                                   # Tipos TypeScript compartidos
+│   └── index.ts
+│
+├── assets/                                  # Imágenes, íconos y multimedia
+│   └── images/
+│
+├── styles/                                  # Estilos modulares o adicionales
+│   └── animations.css
+│
+└── middleware.ts                            # Middleware si lo necesitas (para redirecciones, locales, etc.)
+
+
+otra 
+src/
+├── app/
+│   ├── (lang)/
+│   │   ├── [lang]/                        # Ruta dinámica para idiomas: /es, /en, /fr, etc.
+│   │   │   ├── layout.tsx                # Layout base para el idioma (ej. navbar/footer multilingüe)
+│   │   │   ├── landing/                  # Landing principal por idioma → /es/landing
+│   │   │   │   ├── page.tsx
+│   │   │   │   └── translations.ts       # Textos de la landing por idioma
+│   │   │   ├── about-us/                 # Página completa de "About Us"
+│   │   │   │   └── page.tsx              # /es/about-us
+│   │   │   ├── services/
+│   │   │   │   └── page.tsx              # /es/services
+│   │   │   ├── contact/
+│   │   │   │   └── page.tsx              # /es/contact
+│   │   │   ├── blog/
+│   │   │   │   ├── page.tsx              # /es/blog
+│   │   │   │   └── [slug]/page.tsx       # /es/blog/post-ejemplo
+│   │   │   └── pricing/
+│   │   │       └── page.tsx              # /es/pricing
+│   ├── layout.tsx                        # Layout raíz (idioma-neutral, si aplica)
+│   └── page.tsx                          # Redireccionador o 404
+├── components/
+│   ├── landing/                          # Secciones de la landing
+│   │   ├── Hero.tsx
+│   │   ├── Features.tsx
+│   │   ├── AboutPreview.tsx              # Resumen de /about-us
+│   │   ├── ServicesPreview.tsx           # Resumen de /services
+│   │   ├── Testimonials.tsx
+│   │   ├── PricingPreview.tsx
+│   │   ├── ContactPreview.tsx
+│   ├── layout/                           # Navbar, Footer, etc.
+│   ├── shared/                           # Botones, cards, UI reutilizable
+├── lib/                                  # Utilidades (i18n, SEO helpers, etc.)
+└── styles/                               # Global.css o Theme.ts
