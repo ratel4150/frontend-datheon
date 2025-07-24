@@ -1,3 +1,4 @@
+// src\app\(lang)\components\LanguageSwitcher.tsx
 'use client'
 
 import { useState, useTransition } from 'react'
@@ -8,8 +9,7 @@ import {
   Typography,
   Popover,
   Stack,
-  useTheme,
-  useMediaQuery,
+
   ClickAwayListener,
   CircularProgress,
   Tooltip,
@@ -34,8 +34,7 @@ export function LanguageSwitcher({ currentLang }: Props) {
 
   const pathname = usePathname()
   const router = useRouter()
-  const theme = useTheme()
-  const isMobile = useMediaQuery('(hover: none)')
+
 
   const open = Boolean(anchorEl)
   const id = open ? 'language-popover' : undefined
