@@ -1,6 +1,7 @@
 // src\app\(lang)\[lang]\layout.tsx
 import type { ReactNode } from 'react'
-import { LanguageSwitcher } from '../components/LanguageSwitcher'
+
+import { AppBarMain } from '../components/AppBarMain'
 
 type Props = {
   children: ReactNode
@@ -12,9 +13,7 @@ export default async function LangLayout({ children, params }: Props) {
 
   return (
     <>
-      <header style={{ padding: 16, borderBottom: '1px solid #ccc' }}>
-        <LanguageSwitcher currentLang={lang} />
-      </header>
+     <AppBarMain currentLang={lang} />
       <main>{children}</main>
     </>
   )
