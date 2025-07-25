@@ -120,7 +120,60 @@ export default function WorkProcess({ lang }: Props) {
     const items = steps[lang as keyof typeof steps] || steps.en
 
   return (
-       <Box component="section" sx={{ py: 12, px: { xs: 2, md: 8 }, backgroundColor: '#F9FAFB' }}>
+   <Box
+  component="section"
+  sx={{
+    position: 'relative', // <-- necesario para que el fondo se posicione sobre este contenedor
+    py: 12,
+    px: { xs: 2, md: 8 },
+    backgroundColor: '#F9FAFB',
+    overflow: 'hidden', // <-- asegura que no sobresalga nada
+  }}
+>
+  {/* Fondo SVG decorativo */}
+  <Box
+    sx={{
+      position: 'absolute',
+      inset: 0,
+      zIndex: 0,
+      opacity: 0.2,
+      pointerEvents: 'none',
+    }}
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="100%"
+      height="100%"
+      preserveAspectRatio="xMidYMid slice"
+    >
+      <defs>
+        <pattern
+          id="a"
+          width="40"
+          height="40"
+          patternUnits="userSpaceOnUse"
+        >
+          <rect width="100%" height="100%" fill="#fff" />
+          <path
+            fill="none"
+            stroke="#ecc94b"
+            strokeLinecap="square"
+            strokeWidth=".5"
+            d="M20-5V5m0 30v10m20-30v10M0 15v10"
+          />
+          <path
+            fill="none"
+            stroke="#f44034"
+            strokeLinecap="square"
+            strokeWidth=".5"
+            d="M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10"
+          />
+        </pattern>
+      </defs>
+      <rect width="800%" height="800%" fill="url(#a)" />
+    </svg>
+  </Box>
+        
         
    <Typography
         variant="h3"

@@ -153,20 +153,21 @@ export default function OurServices({lang}:Props) {
   Conoce cómo impulsamos tu empresa con soluciones innovadoras, inteligencia artificial y asesoría tecnológica especializada.
 </Typography>
 
-      <Box
-        sx={{
+     <Box
+  sx={{
     display: 'flex',
-    gap: 6,
-    overflowX: 'auto',
+    flexDirection: { xs: 'column', sm: 'row' }, // Apila en móviles, horizontal en tablets+
+    gap: { xs: 4, sm: 6 },
+    overflowX: { xs: 'auto', sm: 'visible' },
     overflowY: 'visible',
-    pt:8,
+    pt: 8,
     pb: 4,
-    px: 1,
-    mt: 6, // Aumenta el espacio arriba para que no se corte el ícono
-    scrollSnapType: 'x mandatory',
+    px: { xs: 0.5, sm: 1 },
+    mt: 6,
+    scrollSnapType: { xs: 'x mandatory', sm: 'none' },
     WebkitOverflowScrolling: 'touch',
   }}
-      >
+>
      {services.map((service, idx) => {
   const isMostRequested = service.mostRequested; // booleano dentro del array
 
@@ -194,44 +195,32 @@ export default function OurServices({lang}:Props) {
   };
 
   return (
-    <Box
-      key={idx}
-      sx={{
-        position: 'relative',
-        flex: '0 0 340px',
-        minHeight: 500,
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        backgroundColor: '#fff',
-        borderRadius: 4,
-        boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-        pt: 10,
-        pb: 4,
-        px: 3,
-        border: '1px dotted #00ADD8',
-        transition: 'transform 0.3s ease',
-        scrollSnapAlign: 'start',
-        overflow: 'visible',
-        '&:hover': {
-          transform: 'translateY(-10px) scale(1.02)',
-          boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
-        },
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: 80,
-          height: 40,
+      <Box
+        key={idx}
+        sx={{
+          position: 'relative',
+          flex: { xs: '0 0 92%', sm: '0 0 340px' }, // 92% para dejar margen horizontal
+          minHeight: 520,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'flex-start',
           backgroundColor: '#fff',
-          borderBottomLeftRadius: 40,
-          borderBottomRightRadius: 40,
-          zIndex: 2,
-        },
-      }}
-    >
+          borderRadius: 4,
+          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+          pt: 10,
+          pb: 4,
+          px: 3,
+          border: '1px dotted #00ADD8',
+          transition: 'transform 0.3s ease',
+          scrollSnapAlign: { xs: 'start', sm: 'none' },
+          overflow: 'visible',
+          '&:hover': {
+            transform: { sm: 'translateY(-10px) scale(1.02)' }, // desactiva hover en mobile
+            boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
+          },
+          mx: { xs: 'auto', sm: 0 }, // centra en mobile
+        }}
+      >
       {/* Icono circular */}
       <Box
         sx={{

@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Avatar,
@@ -14,6 +14,8 @@ import {
   IconButton,
  
   Button,
+  useMediaQuery,
+  Skeleton,
 } from '@mui/material'
 import Masonry from '@mui/lab/Masonry'
 import { IoCloseCircleOutline } from 'react-icons/io5';
@@ -161,326 +163,305 @@ const Item = styled(Paper)(({ theme }) => ({
   },
 }))
 
-export default function Testimonials({lang}:Props) {
+export default function Testimonials({ lang }: Props) {
   const theme = useTheme()
-const [selected, setSelected] = useState<Testimonial | null>(null)
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const [selected, setSelected] = useState<Testimonial | null>(null)
 
-// Al hacer clic en una card del masonry
-const handleClick = (item: RawTestimonial) => {
-  const x = Math.floor(Math.random() * 70) + 10 // 10% - 80%
-  const y = Math.floor(Math.random() * 70) + 10
+  const [loading, setLoading] = useState(true);
 
-  setSelected({ ...item, x, y })
-}
+// Simula la carga (ejemplo)
+useEffect(() => {
+  const timer = setTimeout(() => setLoading(false), 3000)
+  return () => clearTimeout(timer)
+}, [])
 
-  return (
-    <Box
-      sx={{
-        width: '100%',
-        maxWidth: '1300px',
-        mx: 'auto',
-        py: 6,
-        px: 2,
-        position: 'relative',
-        overflow:"hidden"
-      }}
-    >
-        <Typography
-    variant="h3"
-    textAlign="center"
-    sx={{ mb: 1, fontWeight: 700, fontFamily: 'Poppins', color: '#333' }}
-  >
-    {lang === 'es'
-      ? 'Testimonios Reales'
-      : lang === 'en'
-      ? 'Real Testimonials'
-      : 'Témoignages Réels'}
-  </Typography>
 
-  {/* Subtítulo con términos destacados */}
-  <Typography
-    variant="subtitle1"
-    textAlign="center"
-    sx={{
-      mb: 6,
-      fontFamily: 'Poppins',
-      color: '#555',
-      maxWidth: 700,
-      mx: 'auto',
-    }}
-  >
-    {lang === 'es' ? (
+  const handleClick = (item: RawTestimonial) => {
+    const x = Math.floor(Math.random() * 60) + 20
+    const y = Math.floor(Math.random() * 60) + 20
+    setSelected({ ...item, x, y })
+  }
+
+  const subtitle = {
+    es: (
       <>
         Conoce lo que opinan nuestros usuarios sobre la experiencia con{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           rendimiento
         </Box>
         ,{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           confiabilidad
         </Box>{' '}
         y{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           atención personalizada
         </Box>
         .
       </>
-    ) : lang === 'en' ? (
+    ),
+    en: (
       <>
         Discover what users think about our{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           performance
         </Box>
         ,{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           reliability
         </Box>{' '}
         and{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           personalized support
         </Box>
         .
       </>
-    ) : (
+    ),
+    fr: (
       <>
         Découvrez ce que pensent nos utilisateurs de notre{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           performance
         </Box>
         ,{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           fiabilité
         </Box>{' '}
         et de notre{' '}
-        <Box
-          component="span"
-          sx={{ color: '#00ADD8', fontWeight: 600 }}
-        >
+        <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>
           support personnalisé
         </Box>
         .
       </>
-    )}
-  </Typography>
-      {/* MASONRY GRID */}
-     <Masonry columns={4} spacing={2}>
-  {TESTIMONIALS.map((item, index) => {
-    const height = heights[index % heights.length];
-    const isCompact = height < 150;
+    ),
+  }
 
-    return (
-      <Item
-        key={item.id}
-        onClick={() => handleClick(item)}
-        sx={{
-          height,
-          overflow: 'hidden',
-             border:`1px dotted ${theme.palette.primary.light}`,
-        }}
+  return (
+    <Box sx={{ width: '100%', px: 2, py: 6, maxWidth: '1300px', mx: 'auto', position: 'relative' }}>
+      <Typography
+        variant="h3"
+        textAlign="center"
+        sx={{ fontWeight: 700, mb: 1, color: '#333', fontFamily: 'Poppins' }}
       >
-     
-        <CardContent
-          sx={{
-            display: 'flex',
-            flexDirection: isCompact ? 'row' : 'column',
-            alignItems: 'center',
-            textAlign: isCompact ? 'left' : 'center',
-         
-            px: 1,
-            py: 2,
-            gap: 1,
-          }}
-        >
-          {/* Avatar a la izquierda si compacto, arriba si no */}
-          <Avatar
-            src={item.avatar}
-            alt={item.name}
-            sx={{
-              width: 56,
-              height: 56,
-              border: `1px dotted ${theme.palette.primary.light}`,
-              boxShadow: `0 0 6px ${theme.palette.primary.light}`,
-              mb: isCompact ? 0 : 0.5,
-              mr: isCompact ? 2 : 0,
-            }}
-          />
+        {lang === 'es' ? 'Testimonios Reales' : lang === 'en' ? 'Real Testimonials' : 'Témoignages Réels'}
+      </Typography>
 
-          {/* Texto */}
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              flex: 1,
-            }}
-          >
-            <Typography
-              variant="subtitle2"
-              fontWeight={700}
-              sx={{ color: '#00ADD8', lineHeight: 1.1 }}
+      <Typography
+        variant="subtitle1"
+        textAlign="center"
+        sx={{ mb: 6, fontFamily: 'Poppins', color: '#555', maxWidth: 700, mx: 'auto' }}
+      >
+        {subtitle[lang as 'es' | 'en' | 'fr']}
+      </Typography>
+
+    {isMobile ? (
+        // ✅ MOBILE: mostrar 3 paneles de detalle directamente
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          {TESTIMONIALS.slice(0, 3).map((item) => (
+            <Box
+              key={item.id}
+              sx={{
+                bgcolor: '#fff',
+                borderRadius: 4,
+                boxShadow: 3,
+                p: 3,
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                maxWidth: 500,
+                mx: 'auto',
+              }}
             >
-              {item.name}
-            </Typography>
-
-            <Typography
-              variant="caption"
-              color="#555"
-              sx={{ fontSize: '0.7rem', mb: 0.5 }}
-            >
-              {item.role}
-            </Typography>
-
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              {Array.from({ length: 5 }).map((_, idx) =>
-                idx < Math.floor(item.rating) ? (
-                  <FaStar
-                    key={idx}
-                    color="#FFD700"
-                    style={{ filter: 'drop-shadow(0 0 2px #FFD700)' }}
-                  />
-                ) : (
-                  <FaRegStar key={idx} color="#ccc" />
-                )
-              )}
-
-              <Typography
-                variant="caption"
-                sx={{ color: '#999', ml: 0.5, fontWeight: 600 }}
-              >
-                {item.rating.toFixed(1)}
+              <Avatar
+                src={item.avatar}
+                alt={item.name}
+                sx={{
+                  width: 80,
+                  height: 80,
+                  mb: 2,
+                  border: `3px solid ${theme.palette.primary.main}`,
+                }}
+              />
+              <Typography variant="h6" fontWeight={700} sx={{ color: '#00ADD8' }}>
+                {item.name}
+              </Typography>
+              <Typography variant="subtitle2" sx={{ color: '#666', mb: 1 }}>
+                {item.role}
+              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+                {Array.from({ length: 5 }).map((_, idx) =>
+                  idx < item.rating ? (
+                    <FaStar key={idx} color="#FFD700" />
+                  ) : (
+                    <FaRegStar key={idx} color="#ccc" />
+                  )
+                )}
+                <Typography variant="caption" sx={{ ml: 0.5, color: '#999' }}>
+                  {item.rating.toFixed(1)}
+                </Typography>
+              </Box>
+              <Typography variant="body1" sx={{ color: '#444', fontStyle: 'italic' }}>
+                “{item.quote}”
               </Typography>
             </Box>
-          </Box>
-        </CardContent>
-      </Item>
-    );
-  })}
-</Masonry>
-
-
-
-      {/* PANEL SOBREPUESTO */}
-   {selected && (
-<Box
-  component={motion.div}
-  initial={{
-    opacity: 0,
-    scale: 0.3,
-    rotateX: 80,
-    rotateY: 30,
-    filter: 'blur(8px)',
-    y: -200,
-  }}
-  animate={{
-    opacity: 1,
-    scale: 1,
-    rotateX: 0,
-    rotateY: 0,
-    filter: 'blur(0px)',
-    y: 0,
-  }}
-  exit={{
-    opacity: 0,
-    scale: 0.5,
-    rotateX: -60,
-    filter: 'blur(4px)',
-    y: 100,
-  }}
-  transition={{
-    duration: 0.9,
-    type: 'spring',
-    stiffness: 120,
-    damping: 18,
-  }}
+          ))}
+        </Box>
+      ) : loading ? (
+        // 🖥 DESKTOP: Skeleton Masonry mientras carga
+        <Masonry columns={4} spacing={2}>
+          {[...Array(8)].map((_, i) => (
+           <Box
+  key={i}
   sx={{
-    position: 'absolute',
-    top: `${selected.y}%`,
-    left: `${selected.x}%`,
-    transform: 'translate(-50%, -50%)',
-    zIndex: 20,
-    width: 400,
-    bgcolor: '#fff',
-    borderRadius: 4,
-    boxShadow: 24,
-    p: 3,
-    textAlign: 'center',
+    bgcolor: "lightgray", // gris claro de fondo
+    borderRadius: 2,
+    p: 1,
+    height: heights[i % heights.length],
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
-    perspective: '1000px', // ayuda al efecto 3D
+    justifyContent: 'center',
+    border: `1px dotted lightgray`,
   }}
 >
-    <IconButton
-      onClick={() => setSelected(null)}
-      sx={{ position: 'absolute', top: 8, right: 8 }}
-    >
-      <IoCloseCircleOutline />
-    </IconButton>
-    <Avatar
-      src={selected.avatar}
-      alt={selected.name}
-      sx={{
-        width: 80,
-        height: 80,
-        mb: 2,
-        border: `3px solid ${theme.palette.primary.main}`,
-      }}
-    />
-    <Typography variant="h6" fontWeight={700} sx={{ color: '#00ADD8' }}>
-      {selected.name}
-    </Typography>
-    <Typography variant="subtitle2" sx={{ color: '#666', mb: 2 }}>
-      {selected.role}
-    </Typography> <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              {Array.from({ length: 5 }).map((_, idx) =>
-                idx < Math.floor(selected.rating) ? (
-                  <FaStar
-                    key={idx}
-                    color="#FFD700"
-                    style={{ filter: 'drop-shadow(0 0 2px #FFD700)' }}
-                  />
-                ) : (
-                  <FaRegStar key={idx} color="#ccc" />
-                )
-              )}
-
-              <Typography
-                variant="caption"
-                sx={{ color: '#999', ml: 0.5, fontWeight: 600 }}
+  <Skeleton variant="circular" width={56} height={56} animation="wave" />
+  <Skeleton variant="text" width="80%" sx={{ mt: 1 }} animation="wave" />
+  <Skeleton variant="text" width="60%" animation="wave" />
+</Box>
+          ))}
+        </Masonry>
+      ) : (
+        // 🖥 DESKTOP: Masonry grid con testimonios reales
+        <Masonry columns={4} spacing={2}>
+          {TESTIMONIALS.map((item, index) => {
+            const height = heights[index % heights.length]
+            const isCompact = height < 150
+            return (
+              <Item
+                key={item.id}
+                onClick={() => handleClick(item)}
+                sx={{
+                  height,
+                  overflow: 'hidden',
+                  border: `1px dotted ${theme.palette.primary.light}`,
+                  flexDirection: isCompact ? 'row' : 'column',
+                  alignItems: isCompact ? 'center' : 'flex-start',
+                  textAlign: isCompact ? 'left' : 'center',
+                }}
               >
-                {selected.rating.toFixed(1)}
-              </Typography>
-            </Box>
-    <Typography variant="body1" sx={{ color: '#444', fontStyle: 'italic' }}>
-      “{selected.quote}”
-    </Typography>
-  </Box>
-)}
-  <Box sx={{ textAlign: 'center', mt: 8 }}>
+                <CardContent
+                  sx={{
+                    display: 'flex',
+                    flexDirection: isCompact ? 'row' : 'column',
+                    gap: 1,
+                    alignItems: 'center',
+                    px: 1,
+                    py: 2,
+                    width: '100%',
+                  }}
+                >
+                  <Avatar
+                    src={item.avatar}
+                    alt={item.name}
+                    sx={{
+                      width: 56,
+                      height: 56,
+                      border: `1px dotted ${theme.palette.primary.light}`,
+                      boxShadow: `0 0 6px ${theme.palette.primary.light}`,
+                      mb: isCompact ? 0 : 1,
+                      mr: isCompact ? 2 : 0,
+                    }}
+                  />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="subtitle2" fontWeight={700} sx={{ color: '#00ADD8' }}>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="caption" color="#777">
+                      {item.role}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
+                      {Array.from({ length: 5 }).map((_, idx) =>
+                        idx < item.rating ? (
+                          <FaStar key={idx} color="#FFD700" />
+                        ) : (
+                          <FaRegStar key={idx} color="#ccc" />
+                        )
+                      )}
+                      <Typography variant="caption" sx={{ ml: 0.5, color: '#999' }}>
+                        {item.rating.toFixed(1)}
+                      </Typography>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Item>
+            )
+          })}
+        </Masonry>
+      )}
+
+      {/* PANEL DETALLE */}
+      {selected && (
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, scale: 0.3, y: -150 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.5, y: 100 }}
+          transition={{ duration: 0.8, type: 'spring', stiffness: 140, damping: 18 }}
+          sx={{
+            position: 'fixed',
+            top: `${selected.y}%`,
+            left: `${selected.x}%`,
+            transform: 'translate(-50%, -50%)',
+            bgcolor: '#fff',
+            borderRadius: 4,
+            boxShadow: 24,
+            p: 3,
+            zIndex: 999,
+            width: '90%',
+            maxWidth: 400,
+            textAlign: 'center',
+          }}
+        >
+          <IconButton onClick={() => setSelected(null)} sx={{ position: 'absolute', top: 8, right: 8 }}>
+            <IoCloseCircleOutline />
+          </IconButton>
+          <Avatar
+            src={selected.avatar}
+            alt={selected.name}
+            sx={{
+              width: 80,
+              height: 80,
+              mb: 2,
+              border: `3px solid ${theme.palette.primary.main}`,
+            }}
+          />
+          <Typography variant="h6" fontWeight={700} sx={{ color: '#00ADD8' }}>
+            {selected.name}
+          </Typography>
+          <Typography variant="subtitle2" sx={{ color: '#666', mb: 2 }}>
+            {selected.role}
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mb: 1 }}>
+            {Array.from({ length: 5 }).map((_, idx) =>
+              idx < selected.rating ? (
+                <FaStar key={idx} color="#FFD700" />
+              ) : (
+                <FaRegStar key={idx} color="#ccc" />
+              )
+            )}
+            <Typography variant="caption" sx={{ ml: 0.5, color: '#999' }}>
+              {selected.rating.toFixed(1)}
+            </Typography>
+          </Box>
+          <Typography variant="body1" sx={{ color: '#444', fontStyle: 'italic' }}>
+            “{selected.quote}”
+          </Typography>
+        </Box>
+      )}
+
+      <Box sx={{ textAlign: 'center', mt: 8 }}>
         <Button
           variant="contained"
           size="large"
@@ -496,14 +477,12 @@ const handleClick = (item: RawTestimonial) => {
             borderRadius: 2,
             textTransform: 'none',
             boxShadow: '0 6px 20px rgba(0,173,216,0.3)',
-            transition: 'background-color 0.3s ease',
             '&:hover': { bgcolor: '#007EA7' },
           }}
         >
           {lang === 'es' ? 'Contáctanos' : lang === 'en' ? 'Contact Us' : 'Contactez-nous'}
         </Button>
       </Box>
-
     </Box>
   )
 }
