@@ -42,8 +42,11 @@ type Props = {
 export function AppBarMain({ currentLang }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [openSubmenu, setOpenSubmenu] = useState<string | null>(null)
-  const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const theme = useTheme();
+ const isMobile = useMediaQuery(theme.breakpoints.only('xs')); // solo extra small (0-599px)
+/* const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md')); */ // small a medium (600-1199px)
+const isDesktop = useMediaQuery(theme.breakpoints.up('lg')); // large y mayores (1200px+)
+  
   const router = useRouter()
 
   const handleNavigate = (path: string) => {
@@ -308,7 +311,7 @@ export function AppBarMain({ currentLang }: Props) {
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
                     <FaUniversity />
-                    Universidad
+                    Universidad Datheón
                   </Box>
                 </Box>
               </Stack>
@@ -326,7 +329,7 @@ export function AppBarMain({ currentLang }: Props) {
   </Tooltip>
 
   {/* Botón Consulta justo a la derecha del modo oscuro */}
-  <Button
+  {isDesktop && (<Button
     variant="contained"
     color="primary"
     onClick={() => router.push('/consulta')}
@@ -346,7 +349,8 @@ export function AppBarMain({ currentLang }: Props) {
     }}
   >
     Consulta
-  </Button>
+  </Button>)}
+  
 
   {/* Botón menú móvil */}
   {isMobile && (
