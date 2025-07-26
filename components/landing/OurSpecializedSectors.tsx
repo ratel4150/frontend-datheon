@@ -6,12 +6,11 @@ import {
   MdArrowBackIosNew,
   MdArrowForwardIos,
   MdBusiness,
-  MdComputer,
-  MdShowChart,
+  
   MdPeople,
-  MdTrendingUp,
+
   MdLocalShipping,
-  MdEco,
+
   MdGavel,
   MdShoppingCart,
   MdAttachMoney,
@@ -132,7 +131,7 @@ const SECTORS = [
 
 const VISIBLE_COLUMNS = 3
 const VISIBLE_ROWS = 2
-const VISIBLE_COUNT = VISIBLE_COLUMNS * VISIBLE_ROWS
+/* const VISIBLE_COUNT = VISIBLE_COLUMNS * VISIBLE_ROWS */
 
 const variants = {
   enter: (direction: number) => ({
@@ -169,18 +168,18 @@ export default function MultipleItemsCarousel({lang}:Props) {
   const [direction, setDirection] = useState(1)
 
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
-      next()
-    }, 7000)
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    }
-  }, [page])
+useEffect(() => {
+  timeoutRef.current = setTimeout(() => {
+    next();
+  }, 7000);
+  return () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+  };
+}, [page, next]); // ✅ Añade next aquí
 
   const total = SECTORS.length
   const getVisibleItems = () => {
-    let items = []
+    const items = []
     for (let i = 0; i < visibleCount; i++) {
       items.push(SECTORS[(page * visibleCount + i) % total])
     }
@@ -243,9 +242,9 @@ export default function MultipleItemsCarousel({lang}:Props) {
       Proven expertise across multiple industries with <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>tailored automation solutions</Box> that deliver <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>measurable results</Box> in every sector.
     </>
   ) : (
-    <>
-      Expertise éprouvée dans multiples industries avec des <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>solutions d'automatisation sur mesure</Box> qui génèrent des <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>résultats mesurables</Box> dans chaque secteur.
-    </>
+   <>
+  Expertise éprouvée dans multiples industries avec des <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>solutions d&rsquo;automatisation sur mesure</Box> qui génèrent des <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>résultats mesurables</Box> dans chaque secteur.
+</>
   )}
 </Typography>
 

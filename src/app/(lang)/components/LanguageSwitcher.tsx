@@ -141,7 +141,7 @@ export function LanguageSwitcher({ currentLang }: Props) {
                   >
                     <Tooltip title={label} placement="left" arrow>
                       <Box
-                        role="menuitem"
+                          role="option"
                         aria-selected={isActive}
                         onClick={() => handleLangChange(code)}
                         sx={{
