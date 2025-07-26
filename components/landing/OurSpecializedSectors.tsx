@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { Box, Typography, IconButton, useMediaQuery, useTheme, Button } from '@mui/material'
 import {
   MdArrowBackIosNew,
@@ -157,27 +157,38 @@ type Props={
 }
 
 export default function MultipleItemsCarousel({lang}:Props) {
-  const theme = useTheme()
+ const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-
   const columns = isMobile ? 1 : VISIBLE_COLUMNS
   const rows = isMobile ? 1 : VISIBLE_ROWS
   const visibleCount = columns * rows
 
   const [page, setPage] = useState(0)
   const [direction, setDirection] = useState(1)
-
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-useEffect(() => {
-  timeoutRef.current = setTimeout(() => {
-    next();
-  }, 7000);
-  return () => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-  };
-}, [page, next]); // ✅ Añade next aquí
 
   const total = SECTORS.length
+  const pages = Math.ceil(total / visibleCount)
+
+  const next = useCallback(() => {
+    setDirection(1)
+    setPage((prev) => (prev + 1) % pages)
+  }, [pages])
+
+  const prev = useCallback(() => {
+    setDirection(-1)
+    setPage((prev) => (prev - 1 + pages) % pages)
+  }, [pages])
+
+  useEffect(() => {
+    timeoutRef.current = setTimeout(() => {
+      next()
+    }, 7000)
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    }
+  }, [page, next])
+
   const getVisibleItems = () => {
     const items = []
     for (let i = 0; i < visibleCount; i++) {
@@ -186,17 +197,8 @@ useEffect(() => {
     return items
   }
 
-  function next() {
-    setDirection(1)
-    setPage((prev) => (prev + 1) % Math.ceil(total / visibleCount))
-  }
-
-  function prev() {
-    setDirection(-1)
-    setPage((prev) => (prev - 1 + Math.ceil(total / visibleCount)) % Math.ceil(total / visibleCount))
-  }
-
   const visibleItems = getVisibleItems()
+
 
   return (
     <Box
