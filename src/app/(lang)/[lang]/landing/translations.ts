@@ -1,3 +1,4 @@
+// src\app\(lang)\[lang]\landing\translations.ts
 export type Lang = 'es' | 'en' | 'fr'
 
 export const translations: Record<Lang, { title: string; welcome: string }> = {

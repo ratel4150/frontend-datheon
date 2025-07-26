@@ -1,6 +1,6 @@
 'use client'
 import React from 'react'
-import { Box, Typography,  Paper, GridLegacy, Grid } from '@mui/material'
+import { Box, Typography,  Paper, GridLegacy, Grid, Button } from '@mui/material'
 import { motion } from 'framer-motion'
 
 const TEAM = [
@@ -191,6 +191,29 @@ function OurTeam({lang}:Props) {
     </GridLegacy>
   ))}
 </Grid>
+    <Box sx={{ textAlign: 'center', mt: 8 }}>
+        <Button
+          variant="contained"
+          size="large"
+          href={`/${lang}/contact`}
+          fullWidth
+          sx={{
+            maxWidth: 400,
+            mx: 'auto',
+            bgcolor: '#00ADD8',
+            color: '#fff',
+            fontWeight: 700,
+            py: 2,
+            borderRadius: 2,
+            textTransform: 'none',
+            boxShadow: '0 6px 20px rgba(0,173,216,0.3)',
+            transition: 'background-color 0.3s ease',
+            '&:hover': { bgcolor: '#007EA7' },
+          }}
+        >
+          {lang === 'es' ? 'Contáctanos' : lang === 'en' ? 'Contact Us' : 'Contactez-nous'}
+        </Button>
+      </Box>
 
     </Box>
   )

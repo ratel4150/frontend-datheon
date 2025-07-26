@@ -6,6 +6,7 @@ import OurServices from '../../../../../components/landing/OurSrvices'
 import WorkProcess from '../../../../../components/landing/WorkProcess'
 import Testimonials from '../../../../../components/landing/Testimonials'
 import OurTeam from '../../../../../components/landing/OurTeam'
+import OurSpecializedSectors from '../../../../../components/landing/OurSpecializedSectors'
 
 
 type Props = {
@@ -23,6 +24,7 @@ export default async function LandingPage({ params }: Props) {
         <WorkProcess lang={lang}/>
         <Testimonials lang={lang}/>
         <OurTeam lang={lang}/>
+        <OurSpecializedSectors lang={lang}/>
       {/*   <AboutPreview lang={lang} />
         <ServicesPreview lang={lang} />
         <Testimonials lang={lang} />
