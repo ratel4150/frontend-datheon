@@ -422,7 +422,7 @@ export const Hero = ({ lang }: Props) => {
   transition={{ delay: 0.8 }}
   sx={{ mt: 5 }}
 >
-  <Link href={`/${lang}/contact`}>
+  <Link href="https://calendly.com/team-datheon/30min" target="_blank" rel="noopener noreferrer">
     <Button
       variant="contained"
       sx={{
@@ -432,14 +432,14 @@ export const Hero = ({ lang }: Props) => {
         fontSize: '1rem',
         px: 4,
         py: 1.5,
-        borderRadius: '12px',     // Usar valor válido en CSS para borderRadius
+        borderRadius: '12px',
         textTransform: 'none',
         '&:hover': {
           bgcolor: '#007B9E',     // Azul más oscuro para hover
         },
       }}
     >
-      {t.cta}
+      {t.cta || "Agendar reunión"}  {/* Texto personalizable */}
     </Button>
   </Link>
 </Box>
