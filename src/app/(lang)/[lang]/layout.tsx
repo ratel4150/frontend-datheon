@@ -19,10 +19,10 @@ export const metadata: Metadata = {
     siteName: 'Datheon',
     locale: 'es_MX',
     type: 'website',
-    // Puedes añadir imagen si quieres:
-    // images: [{ url: '/path/to/og-image.png', alt: 'Datheon' }],
   },
+ 
 }
+
 
 export default async function LangLayout({ children, params }: Props) {
   const { lang } = await params

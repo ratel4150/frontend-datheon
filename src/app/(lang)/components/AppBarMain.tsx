@@ -35,7 +35,7 @@ import {
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import datheonLogo from '@/assets/logo/letra-d (2).png'
+import datheonLogo from '@/assets/logo/letra-d (4).png'
 import { FiBook, FiBookmark, FiBriefcase, FiCalendar, FiChevronDown, FiChevronRight, FiChevronUp, FiCode, FiDollarSign, FiGrid, FiHeart, FiLayers, FiMenu,  FiPlusCircle, FiTool, FiX } from 'react-icons/fi'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
@@ -154,31 +154,33 @@ const currentSectors =
       onClick={() => handleNavigate('/')}
     >
       {/* Contenedor del logo (imagen PNG) */}
-      <Box
-        className="logo-box"
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: 2,
-          background: 'linear-gradient(145deg, #e6f9ff, #ffffff)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          border: '1px solid #d1ecf8',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
-          transition: 'all 0.3s ease',
-          padding: 1, // Espacio interno para el logo
-          overflow: 'hidden', // Para bordes redondeados en la imagen
-        }}
-      >
-    <Image
-  src={datheonLogo}
-  alt="Datheon Logo"
-  style={{ objectFit: 'contain' }}
-  fill // para que ocupe todo el contenedor padre (debes tener un padre con posición relativa)
-  sizes="100vw" // opcional, para indicar el tamaño relativo
-/>
-      </Box>
+       <Box
+      className="logo-box"
+      sx={{
+        width: 48,
+        height: 48,
+        borderRadius: 2,
+        background: 'linear-gradient(145deg, #e6f9ff, #ffffff)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        border: '1px solid #d1ecf8',
+        boxShadow: '0 2px 6px rgba(0,0,0,0.06)',
+        transition: 'all 0.3s ease',
+        padding: 1,
+        overflow: 'hidden',
+        position: 'relative',   // Necesario para Image con fill
+      }}
+    >
+      <Image 
+        src={datheonLogo}
+        alt="Datheon Logo"
+        fill
+        style={{ objectFit: 'contain' }}
+        sizes="48px"
+        priority // Opcional, si quieres que cargue rápido
+      />
+    </Box>
 
       {/* Texto de la marca */}
       <Box
