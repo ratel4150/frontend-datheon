@@ -15,6 +15,8 @@ type Props = {
   params: Promise<{ lang: string }>
 }
 
+
+
 export default async function LandingPage({ params }: Props) {
   const { lang } = await params
 
