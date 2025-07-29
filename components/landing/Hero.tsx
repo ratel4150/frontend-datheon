@@ -422,7 +422,7 @@ export const Hero = ({ lang }: Props) => {
   transition={{ delay: 0.8 }}
   sx={{ mt: 5 }}
 >
-  <Link href="https://calendly.com/angel_clavellina-datheon/30min" target="_blank" rel="noopener noreferrer">
+ <Link href="https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica" target="_blank" rel="noopener noreferrer">
     <Button
       variant="contained"
       sx={{
