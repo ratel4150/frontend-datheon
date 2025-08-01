@@ -1,3 +1,4 @@
+// src\app\layout.tsx
 'use client'
 
 import type { ReactNode } from 'react'
@@ -5,9 +6,12 @@ import { CssBaseline, ThemeProvider } from '@mui/material'
 import { poppins } from '@/theme/fonts'
 import { theme } from '@/theme/theme'
 import { useEffect } from 'react'
-
+import ReactPixel from 'react-facebook-pixel'
 export default function RootLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
+
+     ReactPixel.init('1270008318053841') // ← ID de tu pixel
+    ReactPixel.pageView() // ← trackea "PageView"
     const script = document.createElement('script')
     script.type = 'text/javascript'
     script.id = 'zsiqscript'
