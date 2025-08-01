@@ -4,6 +4,7 @@
 import { useEffect } from 'react'
 import ReactPixel from 'react-facebook-pixel'
 import ReactGA from 'react-ga4'
+import TagManager from 'react-gtm-module'
 export default function ClientScripts() {
   useEffect(() => {
     
@@ -16,6 +17,9 @@ export default function ClientScripts() {
     // --- Google Analytics 4 ---
     ReactGA.initialize('G-93CPBCE62D')
     ReactGA.send({ hitType: 'pageview', page: window.location.pathname })
+
+        // --- Google Tag Manager (GTM) ---
+    TagManager.initialize({ gtmId: 'GTM-K8HG4C55' })
 
     const script = document.createElement('script')
     script.type = 'text/javascript'
