@@ -1,4 +1,5 @@
 // src\app\(lang)\[lang]\layout.tsx
+
 import type { ReactNode } from 'react'
 
 import { AppBarMain } from '../components/AppBarMain'
