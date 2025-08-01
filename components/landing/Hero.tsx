@@ -219,6 +219,20 @@ export const Hero = ({ lang }: Props) => {
 /*   const isMobile = useMediaQuery(theme.breakpoints.down('sm')) */
    const ref = useRef(null)
     const isInView = useInView(ref, { once: true })
+
+
+      useEffect(() => {
+  if (isInView && typeof window !== 'undefined' && typeof window.fbq === 'function') {
+    window.fbq('track', 'HeroSectionViewed')
+  }
+}, [isInView])
+
+const handleClick = () => {
+  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
+    window.fbq('track', 'ConsultoriaAgendada')
+    console.log('Evento Facebook Pixel: ConsultoriaAgendada')
+  }
+}
   return (
       <Box
       component={motion.section}
@@ -424,6 +438,7 @@ export const Hero = ({ lang }: Props) => {
 >
  <Link href="https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica" target="_blank" rel="noopener noreferrer">
     <Button
+      onClick={handleClick}
       variant="contained"
       sx={{
         bgcolor: '#00ADD8',       // Azul Golang
