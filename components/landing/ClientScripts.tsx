@@ -3,11 +3,19 @@
 
 import { useEffect } from 'react'
 import ReactPixel from 'react-facebook-pixel'
-
+import ReactGA from 'react-ga4'
 export default function ClientScripts() {
   useEffect(() => {
+    
+
+
+    // --- Facebook Pixel ---
     ReactPixel.init('1270008318053841')
     ReactPixel.pageView()
+
+    // --- Google Analytics 4 ---
+    ReactGA.initialize('G-93CPBCE62D')
+    ReactGA.send({ hitType: 'pageview', page: window.location.pathname })
 
     const script = document.createElement('script')
     script.type = 'text/javascript'

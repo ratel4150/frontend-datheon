@@ -5,7 +5,7 @@ import { Box, Typography, Button} from '@mui/material'
 import { motion, useInView } from 'framer-motion'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react';
-
+import ReactGA from 'react-ga4'
 import {
   SiJavascript,
   SiTypescript,
@@ -228,11 +228,56 @@ export const Hero = ({ lang }: Props) => {
 }, [isInView])
 
 const handleClick = () => {
-  if (typeof window !== 'undefined' && typeof window.fbq === 'function') {
-    window.fbq('track', 'ConsultoriaAgendada')
-    console.log('Evento Facebook Pixel: ConsultoriaAgendada')
+  if (typeof window !== 'undefined') {
+    const userAgent = navigator.userAgent
+    const language = navigator.language || 'es'
+    const referrer = document.referrer || 'direct'
+    const eventoId = crypto.randomUUID?.() ?? Math.random().toString(36)
+
+    // Facebook Pixel
+    if (typeof window.fbq === 'function') {
+      window.fbq('trackCustom', 'ConsultoriaAgendada', {
+        plan: 'Premium',
+        servicio: 'Consultoría Estratégica',
+        canal: 'LandingPage',
+        ubicacion: 'HeroSection',
+        idioma: language,
+        referrer,
+        navegador: userAgent,
+        timestamp: new Date().toISOString(),
+        conversion_intent: true,
+        step: 'click_boton_agendar',
+        evento_unico_id: eventoId,
+      })
+      console.log('[Pixel] ConsultoriaAgendada enviada con metadata rica')
+    } else {
+      console.warn('[Pixel] fbq no está definido en window')
+    }
+
+    // Google Analytics 4 (GA4)
+    ReactGA.event({
+      category: 'Conversiones',
+      action: 'click_agendar_consultoria',
+      label: 'Consultoría Estratégica',
+      value: 1,
+      nonInteraction: false,
+    })
+    ReactGA.gtag('event', 'consultoria_agendada', {
+      plan: 'Premium',
+      servicio: 'Consultoría Estratégica',
+      canal: 'LandingPage',
+      ubicacion: 'HeroSection',
+      idioma: language,
+      referrer,
+      navegador: userAgent,
+      conversion_intent: true,
+      step: 'click_boton_agendar',
+      evento_unico_id: eventoId,
+    })
+    console.log('[GA4] consultoria_agendada enviada con metadata rica')
   }
 }
+
   return (
       <Box
       component={motion.section}
