@@ -1,3 +1,10 @@
+// src/components/landing/ClientScripts.tsx
+'use client'
+
+import { useEffect, useState } from 'react'
+import ReactPixel from 'react-facebook-pixel'
+import ReactGA from 'react-ga4'
+import TagManager from 'react-gtm-module'
 import {
   Box,
   Button,
@@ -6,40 +13,84 @@ import {
   DialogContent,
   DialogTitle,
   FormControlLabel,
- 
   Paper,
   Slide,
   Stack,
   Switch,
-
   Typography,
-
 } from '@mui/material'
-import { useEffect, useState } from 'react'
 import { FiSettings, FiInfo, FiCheckCircle, FiAlertTriangle } from 'react-icons/fi'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function CookieConsentBanner() {
- 
   const [showBanner, setShowBanner] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [settings, setSettings] = useState({
-    analytics: false,
-    marketing: false,
-  })
+  const [settings, setSettings] = useState({ analytics: false, marketing: false })
 
   useEffect(() => {
     const consent = localStorage.getItem('cookie-consent')
-    if (!consent) setShowBanner(true)
+    if (!consent) {
+      setShowBanner(true)
+    } else {
+      try {
+        const parsed = JSON.parse(consent)
+        if (parsed.analytics) {
+          // Google Analytics 4
+          ReactGA.initialize('G-93CPBCE62D')
+          ReactGA.send({ hitType: 'pageview', page: window.location.pathname })
+
+          // Google Tag Manager
+          TagManager.initialize({ gtmId: 'GTM-K8HG4C55' })
+        }
+
+        if (parsed.marketing) {
+          // Facebook Pixel
+          ReactPixel.init('1270008318053841')
+          ReactPixel.pageView()
+        }
+
+        // Zoho SalesIQ Widget (Siempre se carga)
+        const script = document.createElement('script')
+        script.type = 'text/javascript'
+        script.id = 'zsiqscript'
+        script.defer = true
+        script.innerHTML = `
+          var $zoho=$zoho || {};
+          $zoho.salesiq = $zoho.salesiq || {
+            widgetcode:"siq47f05f818f0afe57e009eb6710ff838404cbc1d79270985759bb59f04a3b66c8",
+            values:{}, ready:function(){}
+          };
+        `
+        document.body.appendChild(script)
+
+        const secondScript = document.createElement('script')
+        secondScript.src = 'https://salesiq.zoho.com/widget'
+        secondScript.async = true
+        document.body.appendChild(secondScript)
+
+        return () => {
+          document.body.removeChild(script)
+          document.body.removeChild(secondScript)
+        }
+      } catch {
+        // Invalid JSON, fallback to showing banner
+        setShowBanner(true)
+      }
+    }
   }, [])
 
   const handleAcceptAll = () => {
-    localStorage.setItem('cookie-consent', JSON.stringify({ analytics: true, marketing: true }))
+    const newSettings = { analytics: true, marketing: true }
+    localStorage.setItem('cookie-consent', JSON.stringify(newSettings))
+    setSettings(newSettings)
     setShowBanner(false)
+    window.location.reload()
   }
 
   const handleDeclineAll = () => {
-    localStorage.setItem('cookie-consent', JSON.stringify({ analytics: false, marketing: false }))
+    const newSettings = { analytics: false, marketing: false }
+    localStorage.setItem('cookie-consent', JSON.stringify(newSettings))
+    setSettings(newSettings)
     setShowBanner(false)
   }
 
@@ -59,6 +110,7 @@ export default function CookieConsentBanner() {
     localStorage.setItem('cookie-consent', JSON.stringify(settings))
     setShowBanner(false)
     setShowSettings(false)
+    window.location.reload()
   }
 
   const handleChange = (type: 'analytics' | 'marketing') => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,34 +119,7 @@ export default function CookieConsentBanner() {
 
   return (
     <>
-      {/* ⚙️ Botón flotante configuración */}
-  {/*     <Tooltip title="Configuración de Cookies" placement="left">
-        <IconButton
-          onClick={() => setShowSettings(true)}
-          sx={{
-            position: 'fixed',
-            bottom: 20,
-            right: 20,
-            zIndex: 1300,
-            bgcolor: 'linear-gradient(135deg, #4FC3F7 0%, #0288D1 100%)',
-            color: '#000',
-            boxShadow: '0 6px 15px rgba(79,195,247,0.6)',
-            fontSize: 28,
-            borderRadius: '50%',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              bgcolor: 'linear-gradient(135deg, #0288D1 0%, #4FC3F7 100%)',
-              boxShadow: '0 8px 20px rgba(2,136,209,0.8)',
-              transform: 'scale(1.1)',
-            },
-          }}
-          aria-label="Configuración de cookies"
-        >
-          <FiSettings />
-        </IconButton>
-      </Tooltip> */}
-
-      {/* 🍪 Banner inferior animado */}
+      {/* 🍪 Banner de cookies */}
       <AnimatePresence>
         {showBanner && (
           <Slide direction="up" in={showBanner} mountOnEnter unmountOnExit>
@@ -192,7 +217,7 @@ export default function CookieConsentBanner() {
         )}
       </AnimatePresence>
 
-      {/* ⚙️ Dialogo configuración cookies */}
+      {/* ⚙️ Diálogo de configuración */}
       <Dialog
         open={showSettings}
         onClose={() => setShowSettings(false)}
