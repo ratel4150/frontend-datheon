@@ -7,7 +7,7 @@ import { poppins } from '@/theme/fonts'
 import { theme } from '@/theme/theme'
 import dynamic from 'next/dynamic'
 /* import { ClientScripts } from '../../components/landing/ClientScripts' */
-const ClientScripts = dynamic(() => import('../../components/landing/ClientScripts'), { ssr: false })
+const ClientScripts = dynamic(() => import('../../components/landing/CookieConsentBanner'), { ssr: false })
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

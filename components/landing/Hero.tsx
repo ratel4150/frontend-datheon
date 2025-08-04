@@ -254,7 +254,7 @@ const handleClick = () => {
       console.warn('[Pixel] fbq no está definido en window')
     }
 
-    // Google Analytics 4 (GA4)
+    // Google Analytics 4
     ReactGA.event({
       category: 'Conversiones',
       action: 'click_agendar_consultoria',
@@ -262,6 +262,7 @@ const handleClick = () => {
       value: 1,
       nonInteraction: false,
     })
+
     ReactGA.gtag('event', 'consultoria_agendada', {
       plan: 'Premium',
       servicio: 'Consultoría Estratégica',
@@ -274,9 +275,29 @@ const handleClick = () => {
       step: 'click_boton_agendar',
       evento_unico_id: eventoId,
     })
+
     console.log('[GA4] consultoria_agendada enviada con metadata rica')
+
+    // Google Tag Manager
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({
+      event: 'ConsultoriaAgendada',
+      plan: 'Premium',
+      servicio: 'Consultoría Estratégica',
+      canal: 'LandingPage',
+      ubicacion: 'HeroSection',
+      idioma: language,
+      referrer,
+      navegador: userAgent,
+      conversion_intent: true,
+      step: 'click_boton_agendar',
+      evento_unico_id: eventoId,
+    })
+
+    console.log('[GTM] ConsultoriaAgendada enviada a dataLayer')
   }
 }
+
 
   return (
       <Box

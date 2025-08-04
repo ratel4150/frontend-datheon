@@ -1,21 +1,25 @@
 'use client';
 
 import React from 'react';
-import { Box, Container,  Typography, Link, Divider } from '@mui/material';
+import { Box, Container, Typography, Link, Divider } from '@mui/material';
 import {
   FaXTwitter,
   FaLinkedinIn,
   FaInstagram,
   FaGithub,
 } from 'react-icons/fa6';
-import Grid from '@mui/material/GridLegacy'
+import Grid from '@mui/material/GridLegacy';
+import { usePathname } from 'next/navigation';
 
 const FooterDatheon = () => {
+  const pathname = usePathname();
+  const lang = pathname.split('/')[1] || 'es'; // fallback a 'es'
+
   return (
     <Box
       component="footer"
       sx={{
-        backgroundColor: '#0B0F2B',
+        backgroundColor: 'black',
         color: '#F5F5F5',
         pt: 8,
         pb: 4,
@@ -108,6 +112,15 @@ const FooterDatheon = () => {
         <Box textAlign="center">
           <Typography variant="body2" sx={{ color: '#777' }}>
             © {new Date().getFullYear()} Datheón. Todos los derechos reservados.
+            {' '}
+            ·{' '}
+            <Link
+              href={`/${lang}/privacy`}
+              underline="hover"
+              sx={{ color: '#4FC3F7', ml: 1 }}
+            >
+              Aviso de Privacidad
+            </Link>
           </Typography>
         </Box>
       </Container>
