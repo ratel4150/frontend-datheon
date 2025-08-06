@@ -656,12 +656,18 @@ const handleClick = () => {
 <Box
   sx={{
     width: '100%',
-    maxWidth: '1000px',
+   maxWidth: {
+      xs: '90%',    // móviles
+      sm: '95%',    // tablets
+      md: '900px',  // laptops
+      lg: '1000px', // pantallas grandes
+      xl: '1100px', // pantallas extra grandes
+    },
     borderRadius: '16px',
     overflow: 'hidden',
     mt: 8,
      mb: {
-      xs: -13,  // para móviles
+      xs: -11.5,  // para móviles
       sm: -16,  // para tablets
       md: -22,  // para laptops
       lg: -22,  // para pantallas grandes
