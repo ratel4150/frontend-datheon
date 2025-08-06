@@ -11,6 +11,7 @@ export function middleware(request: NextRequest) {
   if (
   pathname.startsWith('/_next') ||
   pathname.startsWith('/api') ||
+    pathname.startsWith('/videos') || // 👈 ignorar carpeta de videos
   pathname === '/favicon.ico' ||
   pathname === '/manifest.json' ||
   pathname === '/robots.txt' ||

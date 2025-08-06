@@ -30,7 +30,7 @@ import {
   FaUniversity,
   FaChevronDown,
   FaChevronUp,
-  FaCalendarAlt,
+
 } from 'react-icons/fa'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useEffect, useState } from 'react'
@@ -671,11 +671,11 @@ const currentSectors =
 
   {/* Botón Consulta justo a la derecha del modo oscuro */}
 {isDesktop && (
-  <Link href="https://calendly.com/team-datheon/30min" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+  <Link href="https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
     <Button
       variant="contained"
       color="primary"
-      startIcon={<FaCalendarAlt />}  // Icono de calendario (asegúrate de importarlo)
+     // Icono de calendario (asegúrate de importarlo)
       sx={{
         bgcolor: '#00AEEF',
         color: "#FFF",

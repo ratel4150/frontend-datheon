@@ -58,6 +58,8 @@ import {
   // Ejemplo, si tienes el icono importado como SiN8n:
  
 } from 'react-icons/si';
+import { getDeviceData } from '../../lib/tracking/deviceTracking';
+
 
 type Props = {
   lang: string
@@ -221,11 +223,82 @@ export const Hero = ({ lang }: Props) => {
     const isInView = useInView(ref, { once: true })
 
 
-      useEffect(() => {
-  if (isInView && typeof window !== 'undefined' && typeof window.fbq === 'function') {
-    window.fbq('track', 'HeroSectionViewed')
+    useEffect(() => {
+  if (isInView && typeof window !== 'undefined') {
+    // Obtener datos del dispositivo y performance
+    const deviceData = getDeviceData();
+    const now = new Date();
+
+    // Datos extendidos específicos para Hero
+    const trackingData = {
+      // Datos básicos
+      ...deviceData,
+      section_name: 'HeroSection',
+      section_visibility: '100%',
+      timestamp: now.toISOString(),
+      event_id: crypto.randomUUID?.() ?? Math.random().toString(36).substring(2, 9),
+      
+      // Datos específicos de Hero
+      hero_content: {
+        title: document.querySelector('.hero-title')?.textContent?.trim(),
+        cta_text: document.querySelector('.hero-cta')?.textContent?.trim(),
+        has_video: !!document.querySelector('.hero video')
+      },
+      
+      // Datos de performance
+      performance: {
+        load_time: window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart,
+        hero_loaded: now.getTime() - window.performance.timing.navigationStart
+      },
+      
+      // Contexto de visualización
+      viewport: {
+        width: window.innerWidth,
+        height: window.innerHeight,
+        pixel_ratio: window.devicePixelRatio
+      }
+    };
+
+    // Facebook Pixel (evento estándar + custom)
+    if (window.fbq) {
+      window.fbq('track', 'ViewContent', {
+        content_name: 'HeroSectionViewed',
+        content_category: 'Hero Section'
+      });
+      
+      window.fbq('trackCustom', 'HeroView', trackingData);
+    }
+
+    // Google Analytics 4 (gtag + ReactGA)
+    if (window.gtag) {
+      window.gtag('event', 'hero_view', trackingData);
+    }
+
+    if (typeof ReactGA !== 'undefined') {
+      ReactGA.event({
+        category: 'Hero',
+        action: 'HeroSectionViewed',
+        label: deviceData.deviceType,
+        value: Math.round(trackingData.performance.hero_loaded)
+      });
+    }
+
+    // Google Tag Manager
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'heroView',
+      ...trackingData
+    });
+
+    // Debug (solo en desarrollo)
+    if (process.env.NODE_ENV === 'development') {
+      console.group('🚀 Hero Section Tracking');
+      console.log('Basic View Event');
+      console.table(trackingData);
+      console.groupEnd();
+    }
   }
-}, [isInView])
+}, [isInView]);
 
 const handleClick = () => {
   if (typeof window !== 'undefined') {
@@ -325,11 +398,11 @@ const handleClick = () => {
       
     >
            {/* SVG Background */}
-      <Box
+     {/*   <Box
         sx={{
           position: 'absolute',
           inset: 0,
-          zIndex: 0,
+          zIndex: 99,
           pointerEvents: 'none',
           opacity: 0.4, // controla visibilidad
         }}
@@ -366,7 +439,7 @@ const handleClick = () => {
           </defs>
           <rect width="800%" height="800%" fill="url(#a)" />
         </svg>
-      </Box>
+      </Box>  */}
       {/* Glow Background */}
       <Box
         sx={{
@@ -579,6 +652,46 @@ const handleClick = () => {
     ))}
   </motion.div>
 </Box>
+{/* Video Section - Hero Video Background */}
+<Box
+  sx={{
+    width: '100%',
+    maxWidth: '1000px',
+    borderRadius: '16px',
+    overflow: 'hidden',
+    mt: 8,
+     mb: {
+      xs: -13,  // para móviles
+      sm: -16,  // para tablets
+      md: -22,  // para laptops
+      lg: -22,  // para pantallas grandes
+    },
+
+    // Ajuste de sombra minimalista
+ 
+  }}
+>
+  <video
+    autoPlay
+    muted
+    loop
+    playsInline
+    style={{
+      width: '100%',
+      height: 'auto',
+      display: 'block', // Elimina espacio fantasma debajo del video
+      aspectRatio: '16/9' // Ajusta según la proporción real de tu video
+    }}
+  >
+    <source 
+      src="/videos/Datheons.mp4" 
+      type="video/webm" 
+    />
+    
+    {/* Fallback ultracompacto */}
+
+  </video>
+</Box>
 <Box
       ref={ref}
       sx={{
@@ -595,6 +708,7 @@ const handleClick = () => {
         mt: 6,
         borderTopRightRadius: 25,
         borderTopLeftRadius: 25,
+        
       }}
     >
       {/* Título y subtítulo */}
