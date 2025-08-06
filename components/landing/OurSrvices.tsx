@@ -472,7 +472,7 @@ useEffect(() => {
 </Typography>
 
      <Box
-  sx={{
+  sx={{justifyContent: { xs: 'flex-start', sm: 'center' },
     display: 'flex',
     flexDirection: { xs: 'column', sm: 'row' }, // Apila en móviles, horizontal en tablets+
     gap: { xs: 4, sm: 6 },
@@ -567,31 +567,30 @@ useEffect(() => {
 
   return (
       <Box
-        key={idx}
-        sx={{
-          position: 'relative',
-          flex: { xs: '0 0 92%', sm: '0 0 340px' }, // 92% para dejar margen horizontal
-          minHeight: 520,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-start',
-          backgroundColor: '#fff',
-          borderRadius: 4,
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-          pt: 10,
-          pb: 4,
-          px: 3,
-          border: '1px dotted #00ADD8',
-          transition: 'transform 0.3s ease',
-          scrollSnapAlign: { xs: 'start', sm: 'none' },
-          overflow: 'visible',
-          '&:hover': {
-            transform: { sm: 'translateY(-10px) scale(1.02)' }, // desactiva hover en mobile
-            boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
-          },
-          mx: { xs: 'auto', sm: 0 }, // centra en mobile
-        }}
-      >
+  key={idx}
+  sx={{
+    position: 'relative',
+    width: { xs: '90%', sm: '320px', md: '340px' },
+    minHeight: 520,
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    backgroundColor: '#fff',
+    borderRadius: 4,
+    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+    pt: 10,
+    pb: 4,
+    px: 3,
+    border: '1px dotted #00ADD8',
+    transition: 'transform 0.3s ease',
+    scrollSnapAlign: { xs: 'start', sm: 'none' },
+    mx: { xs: 'auto', sm: 2 }, // Centrado en mobile, con espacio entre tarjetas en desktop
+    '&:hover': {
+      transform: { sm: 'translateY(-10px) scale(1.02)' },
+      boxShadow: '0 12px 30px rgba(0,0,0,0.2)',
+    },
+  }}
+>
       {/* Icono circular */}
       <Box
         sx={{
