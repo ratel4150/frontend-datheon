@@ -1,8 +1,8 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import {
-  Box, Button, Typography, useTheme } from '@mui/material'
+  Box, Button, CircularProgress, Typography } from '@mui/material'
 import {
   Timeline,
   TimelineItem,
@@ -29,6 +29,7 @@ import validacionImg from '@/assets/images/sections/workprocess/validacion.png'
 import despliegueImg from '@/assets/images/sections/workprocess/despliegue.png'
 import mantenimientoImg from '@/assets/images/sections/workprocess/mantenimiento.png'
 import Image, { StaticImageData } from 'next/image'
+import ReactGA from 'react-ga4'
 import { motion } from 'framer-motion'
 type Props = {
   lang: string
@@ -48,7 +49,7 @@ const steps: Record<string, Step[]> = {
   es: [
     {
       icon: <FaClipboardList size={24} />,
-      title: '1️⃣ Descubrimiento y Alcance',
+      title: '1Descubrimiento y Alcance',
       descLines: [
         'Entrevistas con el cliente para entender necesidades.',
         'Documentación de requisitos y casos de uso.',
@@ -59,7 +60,7 @@ const steps: Record<string, Step[]> = {
     },
     {
       icon: <FaPaintBrush size={24} />,
-      title: '2️⃣ Diseño y Planificación',
+      title: 'Diseño y Planificación',
       descLines: [
         'Prototipos (UI/UX en Figma/Sketch).',
         'Arquitectura técnica (diagramas UML, tecnologías).',
@@ -70,7 +71,7 @@ const steps: Record<string, Step[]> = {
     },
     {
       icon: <FaLaptopCode size={24} />,
-      title: '3️⃣ Desarrollo Iterativo',
+      title: 'Desarrollo Iterativo',
       descLines: [
         'Sprints (si es ágil) o fases secuenciales.',
         'Reuniones diarias (stand-ups) y revisión semanal con el cliente.',
@@ -81,7 +82,7 @@ const steps: Record<string, Step[]> = {
     },
     {
       icon: <FaVial size={24} />,
-      title: '4️⃣ Validación y QA',
+      title: 'Validación y QA',
       descLines: [
         'Pruebas automatizadas (unitarias, integración).',
         'Feedback del cliente en demos (cada 2 semanas en ágil).',
@@ -91,7 +92,7 @@ const steps: Record<string, Step[]> = {
     },
     {
       icon: <FaRocket size={24} />,
-      title: '5️⃣ Despliegue Guiado',
+      title: 'Despliegue Guiado',
       descLines: [
         'Release planificado (pilotaje, rollout gradual).',
         'Soporte post-lanzamiento (primeras 48h críticas).',
@@ -101,7 +102,7 @@ const steps: Record<string, Step[]> = {
     },
     {
       icon: <FaSyncAlt size={24} />,
-      title: '6️⃣ Mantenimiento Continuo',
+      title: 'Mantenimiento Continuo',
       descLines: [
         'SLA definido (horas de soporte/mes).',
         'Mejoras basadas en métricas (uso, rendimiento).',
@@ -110,14 +111,212 @@ const steps: Record<string, Step[]> = {
       imgSrc: mantenimientoImg,
     },
   ],
-  en: [],
-  fr: [],
+  en: [ {
+    icon: <FaClipboardList size={24} />,
+    title: 'Discovery and Scoping',
+    descLines: [
+      'Client interviews to understand needs.',
+      'Requirements and use case documentation.',
+      'Technical and economic proposal (timeline, costs).',
+    ],
+    output: 'Project Charter',
+    imgSrc: descubrimientoImg, // Same as Spanish version
+  },
+  {
+    icon: <FaPaintBrush size={24} />,
+    title: 'Design and Planning',
+    descLines: [
+      'UI/UX prototypes (Figma/Sketch).',
+      'Technical architecture (UML diagrams, tech stack).',
+      'Agile plan (Sprints/backlog) or waterfall plan (Gantt chart).',
+    ],
+    output: 'Approved Design Document',
+    imgSrc: diseñoImg, // Same as Spanish version
+  },
+  {
+    icon: <FaLaptopCode size={24} />,
+    title: 'Iterative Development',
+    descLines: [
+      'Sprints (if Agile) or sequential phases.',
+      'Daily stand-ups and weekly client reviews.',
+      'Tools: Jira/Trello + Git + CI/CD pipelines.',
+    ],
+    output: 'Functional MVP',
+    imgSrc: desarrolloImg, // Same as Spanish version
+  },
+  {
+    icon: <FaVial size={24} />,
+    title: 'Validation and QA',
+    descLines: [
+      'Automated testing (unit, integration).',
+      'Client feedback in biweekly demos (Agile).',
+    ],
+    output: 'Quality Report and Adjustments',
+    imgSrc: validacionImg, // Same as Spanish version
+  },
+  {
+    icon: <FaRocket size={24} />,
+    title: 'Guided Deployment',
+    descLines: [
+      'Staged release (pilot, gradual rollout).',
+      'Post-launch support (critical first 48h).',
+    ],
+    output: 'User Manual and Training',
+    imgSrc: despliegueImg, // Same as Spanish version
+  },
+  {
+    icon: <FaSyncAlt size={24} />,
+    title: 'Ongoing Maintenance',
+    descLines: [
+      'Defined SLA (support hours/month).',
+      'Improvements based on metrics (usage, performance).',
+    ],
+    output: 'Optimization Reports',
+    imgSrc: mantenimientoImg, // Same as Spanish version
+  },],
+  fr: [{
+    icon: <FaClipboardList size={24} />,
+    title: 'Découverte et Cadrage',
+    descLines: [
+      'Entretiens clients pour comprendre les besoins.',
+      'Documentation des exigences et cas d\'utilisation.',
+      'Proposition technique et économique (calendrier, coûts).',
+    ],
+    output: 'Charte de projet',
+    imgSrc: descubrimientoImg, // Même référence
+  },
+  {
+    icon: <FaPaintBrush size={24} />,
+    title: 'Conception et Planification',
+    descLines: [
+      'Prototypes UI/UX (Figma/Sketch).',
+      'Architecture technique (diagrammes UML, technologies).',
+      'Plan Agile (Sprints/backlog) ou plan cascade (diagramme de Gantt).',
+    ],
+    output: 'Document de conception approuvé',
+    imgSrc: diseñoImg, // Même référence
+  },
+  {
+    icon: <FaLaptopCode size={24} />,
+    title: 'Développement Itératif',
+    descLines: [
+      'Sprints (si Agile) ou phases séquentielles.',
+      'Réunions quotidiennes (stand-ups) et revues hebdomadaires clients.',
+      'Outils : Jira/Trello + Git + pipelines CI/CD.',
+    ],
+    output: 'MVP fonctionnel',
+    imgSrc: desarrolloImg, // Même référence
+  },
+  {
+    icon: <FaVial size={24} />,
+    title: 'Validation et Assurance Qualité',
+    descLines: [
+      'Tests automatisés (unitaires, d\'intégration).',
+      'Feedback client via démos bimensuelles (Agile).',
+    ],
+    output: 'Rapport de qualité et ajustements',
+    imgSrc: validacionImg, // Même référence
+  },
+  {
+    icon: <FaRocket size={24} />,
+    title: 'Déploiement Guidé',
+    descLines: [
+      'Lancement par étapes (pilote, déploiement progressif).',
+      'Support post-lancement (48 premières heures critiques).',
+    ],
+    output: 'Manuel utilisateur et formation',
+    imgSrc: despliegueImg, // Même référence
+  },
+  {
+    icon: <FaSyncAlt size={24} />,
+    title: 'Maintenance Continue',
+    descLines: [
+      'SLA défini (heures de support/mois).',
+      'Améliorations basées sur les métriques (utilisation, performance).',
+    ],
+    output: 'Rapports d\'optimisation',
+    imgSrc: mantenimientoImg, // Même référence
+  },],
 }
 
 export default function WorkProcess({ lang }: Props) {
-  const theme = useTheme()
+ 
+   const [loading, setLoading] = useState(false);
+    
 
     const items = steps[lang as keyof typeof steps] || steps.en
+
+     const handleClick = (serviceTitle: string) => {
+  if (loading) return;
+  setLoading(true);
+
+  // Tracking analítico
+  if (typeof window !== 'undefined') {
+    const userAgent = navigator.userAgent;
+    const language = navigator.language || 'es';
+    const referrer = document.referrer || 'direct';
+    const eventoId = crypto.randomUUID?.() ?? Math.random().toString(36);
+
+    // Datos comunes para todos los trackers
+    const trackingData = {
+      plan: 'Premium',
+      servicio: serviceTitle, // Usamos el título del servicio dinámicamente
+      canal: 'LandingPage',
+      ubicacion: 'OurServicesSection', // Actualizado a la sección correcta
+      idioma: language,
+      referrer,
+      navegador: userAgent,
+      timestamp: new Date().toISOString(),
+      conversion_intent: true,
+      step: 'click_boton_agendar_servicio', // Actualizado al paso correcto
+      evento_unico_id: eventoId,
+    };
+
+    // Facebook Pixel
+    if (typeof window.fbq === 'function') {
+      window.fbq('trackCustom', 'ServicioAgendado', trackingData);
+    }
+
+    // Google Analytics 4
+    if (typeof ReactGA !== 'undefined') {
+      ReactGA.event({
+        category: 'Servicios',
+        action: 'click_agendar_servicio',
+        label: serviceTitle,
+        value: 1,
+        nonInteraction: false,
+      });
+
+      ReactGA.gtag('event', 'servicio_agendado', trackingData);
+    }
+
+    // Google Tag Manager
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: 'ServicioAgendado',
+      ...trackingData
+    });
+  }
+
+  // Apertura de Calendly (puedes personalizar la URL por servicio si es necesario)
+  const calendlyUrl = `https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica`;
+  const width = 800;
+  const height = 700;
+  const left = window.screenX + (window.innerWidth - width) / 2;
+  const top = window.screenY + (window.innerHeight - height) / 2;
+
+  const win = window.open(
+    calendlyUrl,
+    'Calendly',
+    `width=${width},height=${height},left=${left},top=${top}`
+  );
+  
+  if (win) {
+    win.focus();
+  } 
+
+  setTimeout(() => setLoading(false), 1500);
+};
 
   return (
    <Box
@@ -261,27 +460,34 @@ export default function WorkProcess({ lang }: Props) {
             </TimelineOppositeContent>
 
             <TimelineSeparator>
-              <TimelineDot
-                sx={{
-                  bgcolor: '#00ADD8',
-                  color: '#fff',
-                  boxShadow: `0 0 0 4px ${theme.palette.background.paper}`,
-                }}
-              >
-                {step.icon}
-              </TimelineDot>
+          <TimelineDot
+  sx={{
+    bgcolor: '#00ADD8',
+    color: '#fff',
+    boxShadow: `0 2px 6px rgba(0, 173, 216, 0.4)`,
+    transition: 'transform 0.3s ease, background-color 0.3s ease',
+    '&:hover': {
+      bgcolor: '#008CBF', // un azul más oscuro en hover
+      transform: 'scale(1.1)',
+      boxShadow: `0 4px 12px rgba(0, 140, 191, 0.6)`,
+      cursor: 'pointer',
+    },
+  }}
+>
+  {step.icon}
+</TimelineDot>
               {i < items.length - 1 && <TimelineConnector sx={{ bgcolor: '#00ADD8' }} />}
             </TimelineSeparator>
 
             <TimelineContent sx={{ py: 2, px: 2, textAlign: { xs: 'left', md: 'right' } }}>
-              <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: '#00ADD8', mb: 1 }}>
+              <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: 'Poppins', color: '#00ADD8', mb: 1,textAlign:"start" }}>
                 {step.title}
               </Typography>
               {step.descLines.map((line, idx) => (
                 <Typography
                   key={idx}
                   variant="body2"
-                  sx={{ fontFamily: 'Poppins', color: '#555', lineHeight: 1.6 }}
+                  sx={{ fontFamily: 'Poppins', color: '#555', lineHeight: 1.6 ,textAlign:"start" }}
                 >
                   {line}
                 </Typography>
@@ -289,7 +495,7 @@ export default function WorkProcess({ lang }: Props) {
               {step.output && (
                 <Typography
                   variant="subtitle2"
-                  sx={{ fontFamily: 'Poppins', color: '#333', fontWeight: 600, mt: 1 }}
+                  sx={{ fontFamily: 'Poppins', color: '#333', fontWeight: 600, mt: 1,textAlign:"start"  }}
                 >
                   Salida: {step.output}
                 </Typography>
@@ -302,27 +508,35 @@ export default function WorkProcess({ lang }: Props) {
 
       {/* CTA Section */}
        <Box sx={{ textAlign: 'center', mt: 8 }}>
-        <Button
-          variant="contained"
-          size="large"
-          href={`/${lang}/contact`}
-          fullWidth
-          sx={{
-            maxWidth: 400,
-            mx: 'auto',
-            bgcolor: '#00ADD8',
-            color: '#fff',
-            fontWeight: 700,
-            py: 2,
-            borderRadius: 2,
-            textTransform: 'none',
-            boxShadow: '0 6px 20px rgba(0,173,216,0.3)',
-            transition: 'background-color 0.3s ease',
-            '&:hover': { bgcolor: '#007EA7' },
-          }}
-        >
-          {lang === 'es' ? 'Contáctanos' : lang === 'en' ? 'Contact Us' : 'Contactez-nous'}
-        </Button>
+    <Button
+  variant="contained"
+  size="large"
+  fullWidth
+  onClick={() => handleClick('Work Process Contact')} // Nombre específico para tracking
+  sx={{
+    maxWidth: 400,
+    mx: 'auto',
+    bgcolor: '#00ADD8',
+    color: '#fff',
+    fontWeight: 700,
+    py: 2,
+    borderRadius: 2,
+    textTransform: 'none',
+    boxShadow: '0 6px 20px rgba(0,173,216,0.3)',
+    transition: 'background-color 0.3s ease',
+    '&:hover': { bgcolor: '#007EA7' },
+    '&:disabled': { bgcolor: '#B0B0B0' }
+  }}
+  disabled={loading}
+>
+  {loading ? (
+    <CircularProgress size={24} color="inherit" />
+  ) : (
+    lang === 'es' ? 'Contáctanos' : 
+    lang === 'en' ? 'Contact Us' : 
+    'Contactez-nous'
+  )}
+</Button>
       </Box>
     </Box>
   )
