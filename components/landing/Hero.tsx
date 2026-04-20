@@ -1,9 +1,8 @@
-// File: components/landing/Hero.tsx
 'use client'
 
-import { Box, Typography, Container,  } from '@mui/material'
-import { motion, useInView,  } from 'framer-motion'
-
+import { Box, Typography, Button, Container, alpha } from '@mui/material'
+import { motion, useInView, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
 import {
@@ -12,9 +11,8 @@ import {
   SiFlutter, SiGooglecloud, SiFirebase, SiGraphql, SiTailwindcss,
   SiGo, SiRust, SiRedis, SiNestjs, SiGit,
 } from 'react-icons/si'
-import {  FiCheck } from 'react-icons/fi'
+import { FiCalendar, FiArrowRight, FiCheck } from 'react-icons/fi'
 import { getDeviceData } from '../../lib/tracking/deviceTracking'
-import { HeroCTABlock } from './Herocta'
 
 // ─── Tokens ──────────────────────────────────────────────────
 const C = {
@@ -179,7 +177,25 @@ export function Hero({ lang }: Props) {
     window.dataLayer.push({ event: 'heroView', ...trackingData })
   }, [isInView])
 
-
+  const handleCTA = () => {
+    if (typeof window === 'undefined') return
+    const eventoId = crypto.randomUUID?.() ?? Math.random().toString(36)
+    const payload = {
+      plan: 'Premium', servicio: 'Consultoría Estratégica',
+      canal: 'LandingPage', ubicacion: 'HeroSection',
+      idioma: navigator.language || 'es',
+      referrer: document.referrer || 'direct',
+      timestamp: new Date().toISOString(),
+      conversion_intent: true, evento_unico_id: eventoId,
+    }
+    if (window.fbq) window.fbq('trackCustom', 'ConsultoriaAgendada', payload)
+    if (typeof ReactGA !== 'undefined') {
+      ReactGA.event({ category: 'Conversiones', action: 'click_agendar_consultoria', label: 'HeroSection', value: 1 })
+      ReactGA.gtag('event', 'consultoria_agendada', payload)
+    }
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'ConsultoriaAgendada', ...payload })
+  }
 
   // ── Stagger variants ──
   const container = {
@@ -188,7 +204,7 @@ export function Hero({ lang }: Props) {
   }
   const item = {
     hidden: { opacity: 0, y: 24 },
-    show:   { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+    show:   { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
   }
 
   return (
@@ -339,8 +355,72 @@ export function Hero({ lang }: Props) {
           </Box>
 
           {/* CTAs */}
-      
-          <HeroCTABlock lang={lang}/>
+          <Box
+            component={motion.div}
+            variants={item}
+            sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              gap: 1.5, flexWrap: 'wrap', mb: 3,
+            }}
+          >
+            <Link href="https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica" target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
+              <Button
+                variant="contained"
+                size="large"
+                startIcon={<FiCalendar size={16}/>}
+                onClick={handleCTA}
+                component={motion.button}
+                whileHover={{ scale: 1.02, y: -1 }}
+                whileTap={{ scale: 0.98 }}
+                sx={{
+                  bgcolor: C.accent,
+                  color: '#fff',
+                  fontWeight: 700,
+                  fontSize: '0.95rem',
+                  px: 3.5, py: 1.4,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  boxShadow: `0 4px 20px ${alpha(C.accent, 0.35)}`,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    bgcolor: C.accentDk,
+                    boxShadow: `0 8px 28px ${alpha(C.accent, 0.45)}`,
+                  },
+                }}
+              >
+                {t.cta}
+              </Button>
+            </Link>
+
+            <Button
+              variant="outlined"
+              size="large"
+              endIcon={<FiArrowRight size={15}/>}
+              onClick={() => {
+                const el = document.getElementById('services')
+                el?.scrollIntoView({ behavior: 'smooth' })
+              }}
+              component={motion.button}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              sx={{
+                color: C.textMid,
+                borderColor: C.border,
+                fontWeight: 600,
+                fontSize: '0.9rem',
+                px: 3, py: 1.4,
+                borderRadius: '12px',
+                textTransform: 'none',
+                '&:hover': {
+                  borderColor: C.accentLine,
+                  bgcolor: C.accentBg,
+                  color: C.accent,
+                },
+              }}
+            >
+              {t.ctaSub}
+            </Button>
+          </Box>
 
           {/* Trust badges */}
           <Box
@@ -445,7 +525,7 @@ export function Hero({ lang }: Props) {
           component={motion.div}
           initial={{ opacity: 0, y: 24 }}
           animate={statsInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] }}
           sx={{
             mt: { xs: 5, md: 6 },
             p: { xs: 3, md: 4 },
