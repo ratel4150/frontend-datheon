@@ -1,7 +1,7 @@
 'use client'
 
 import { Box, Typography, Button, Container, alpha } from '@mui/material'
-import { motion, useInView, AnimatePresence } from 'framer-motion'
+import { motion, useInView } from 'framer-motion'
 import Link from 'next/link'
 import { useEffect, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
