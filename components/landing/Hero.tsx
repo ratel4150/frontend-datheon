@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/Hero.tsx
 'use client'
 
 import { Box, Typography, Button, Container, alpha } from '@mui/material'

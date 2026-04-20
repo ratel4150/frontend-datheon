@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/(lang)/components/AppBarMain.tsx
 'use client'
 
 import {
@@ -13,6 +14,7 @@ import {
   FiChevronRight, FiChevronUp, FiCode, FiDollarSign, FiGrid,
   FiHeart, FiLayers, FiMenu, FiArrowRight, FiTool, FiX,
   FiZap,
+  FiCpu,
 } from 'react-icons/fi'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useEffect, useRef, useState } from 'react'
@@ -51,19 +53,24 @@ interface SubItem {
 // ─── Data ─────────────────────────────────────────────────────
 const servicesData: Record<Lang, SubItem[]> = {
   es: [
-    { label: 'Consultoría TI',  path: '/servicios/consultoria',    description: 'Estrategia y arquitectura tecnológica', icon: <FiBriefcase size={15}/> },
-    { label: 'Desarrollo Web',  path: '/servicios/desarrollo-web', description: 'Apps web y móviles a medida',           icon: <FiCode size={15}/> },
-    { label: 'Soporte Técnico', path: '/servicios/soporte',        description: 'Asistencia especializada continua',     icon: <FiTool size={15}/> },
+    { label: 'Consultoría TI',  path: '/servicios/consultoria',         description: 'Estrategia y arquitectura tecnológica', icon: <FiBriefcase size={15}/> },
+    { label: 'Desarrollo Web',  path: '/servicios/desarrollo-web',      description: 'Apps web y móviles a medida',           icon: <FiCode size={15}/> },
+    { label: 'Soporte Técnico', path: '/servicios/soporte',             description: 'Asistencia especializada continua',     icon: <FiTool size={15}/> },
+    { label: 'Agentes Autónomos', path: '/servicios/agentes-autonomos', description: 'Automatización con agentes de IA',       icon: <FiCpu size={15}/> },
   ],
+
   en: [
-    { label: 'IT Consulting',     path: '/services/consulting',      description: 'Technology strategy and architecture', icon: <FiBriefcase size={15}/> },
-    { label: 'Web Development',   path: '/services/web-development', description: 'Custom web and mobile applications',   icon: <FiCode size={15}/> },
-    { label: 'Technical Support', path: '/services/support',         description: 'Specialized ongoing assistance',       icon: <FiTool size={15}/> },
+    { label: 'IT Consulting',     path: '/services/consulting',          description: 'Technology strategy and architecture', icon: <FiBriefcase size={15}/> },
+    { label: 'Web Development',   path: '/services/web-development',     description: 'Custom web and mobile applications',   icon: <FiCode size={15}/> },
+    { label: 'Technical Support', path: '/services/support',             description: 'Specialized ongoing assistance',       icon: <FiTool size={15}/> },
+    { label: 'Autonomous Agents', path: '/services/autonomous-agents',   description: 'AI-powered workflow automation',       icon: <FiCpu size={15}/> },
   ],
+
   fr: [
-    { label: 'Consultance IT',    path: '/services/consultance',       description: 'Stratégie et architecture technologique', icon: <FiBriefcase size={15}/> },
-    { label: 'Développement Web', path: '/services/developpement-web', description: 'Applications web et mobiles sur mesure',  icon: <FiCode size={15}/> },
-    { label: 'Support Technique', path: '/services/support',           description: 'Assistance spécialisée continue',          icon: <FiTool size={15}/> },
+    { label: 'Consultance IT',    path: '/services/consultance',         description: 'Stratégie et architecture technologique', icon: <FiBriefcase size={15}/> },
+    { label: 'Développement Web', path: '/services/developpement-web',   description: 'Applications web et mobiles sur mesure',  icon: <FiCode size={15}/> },
+    { label: 'Support Technique', path: '/services/support',             description: 'Assistance spécialisée continue',          icon: <FiTool size={15}/> },
+    { label: 'Agents Autonomes',  path: '/services/agents-autonomes',    description: 'Automatisation avec des agents IA',        icon: <FiCpu size={15}/> },
   ],
 }
 

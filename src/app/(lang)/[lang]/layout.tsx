@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/(lang)/[lang]/layout.tsx
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { AppBarMain } from '../components/AppBarMain'

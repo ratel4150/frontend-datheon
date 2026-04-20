@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/(lang)/components/AchievementsCounter.tsx
 // src\app\(lang)\components\AchievementsCounter.tsx
 'use client'
 

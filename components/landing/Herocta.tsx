@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/Herocta.tsx
 'use client'
 
 import {
