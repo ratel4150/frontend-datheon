@@ -1,19 +1,18 @@
-// File: src/app/(lang)/components/AppBarMain.tsx
 'use client'
 
 import {
   AppBar, Toolbar, IconButton, Typography, Stack, Box,
   Drawer, List, ListItem, Button, useMediaQuery, useTheme,
-  Slide, Collapse, Divider, alpha,
+  Collapse, Divider, alpha,
 } from '@mui/material'
 import {
-  FaMoon, 
+  FaMoon, FaBars, FaChevronDown, FaChevronUp,
 } from 'react-icons/fa'
 import {
   FiBook, FiBookmark, FiBriefcase, FiCalendar, FiChevronDown,
-  FiChevronRight,  FiCode, FiDollarSign, FiGrid,
+  FiChevronRight, FiChevronUp, FiCode, FiDollarSign, FiGrid,
   FiHeart, FiLayers, FiMenu, FiArrowRight, FiTool, FiX,
-  
+  FiZap,
 } from 'react-icons/fi'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useEffect, useRef, useState } from 'react'
@@ -399,11 +398,15 @@ export function AppBarMain({ currentLang }: Props) {
 
   return (
     <>
-      <Slide direction="down" in mountOnEnter>
-        <AppBar
+      <AppBar
           position="sticky"
           elevation={0}
           sx={{
+            animation: 'slideDown 0.4s ease forwards',
+            '@keyframes slideDown': {
+              from: { transform: 'translateY(-100%)', opacity: 0 },
+              to: { transform: 'translateY(0)', opacity: 1 },
+            },
             bgcolor: C.bg,
             color: C.text,
             borderBottom: `1px solid ${scrolled ? C.border : 'transparent'}`,
@@ -553,8 +556,7 @@ export function AppBarMain({ currentLang }: Props) {
               )}
             </Stack>
           </Toolbar>
-        </AppBar>
-      </Slide>
+      </AppBar>
 
       {/* ── Mobile Drawer ── */}
       <Drawer

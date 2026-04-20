@@ -1,9 +1,9 @@
-// File: frontend-datheon/src/app/providers.tsx
 'use client'
 
 import type { ReactNode } from 'react'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { theme } from '@/theme/theme'
+import { useEffect, useState } from 'react'
 import dynamic from 'next/dynamic'
 
 const CookieConsentBanner = dynamic(
@@ -12,10 +12,13 @@ const CookieConsentBanner = dynamic(
 )
 
 export function Providers({ children }: { children: ReactNode }) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <CookieConsentBanner />
+      {mounted && <CookieConsentBanner />}
       {children}
     </ThemeProvider>
   )
