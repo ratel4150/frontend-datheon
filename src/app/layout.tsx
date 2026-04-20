@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/layout.tsx
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { poppins } from '@/theme/fonts'
@@ -8,6 +9,15 @@ export const metadata: Metadata = {
   title: {
     default: 'Datheón — AI SaaS, Agentes y Desarrollo Tech',
     template: '%s | Datheón',
+  },
+   icons: {
+    icon: [
+      { url: '/favicon.ico' },
+      { url: '/favicon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [
+      { url: '/apple-touch-icon.png', sizes: '180x180' },
+    ],
   },
   description: 'Consultora tecnológica especializada en AI SaaS, agentes autónomos, desarrollo web, IoT y Cloud. Transformamos tu empresa con tecnología real.',
   keywords: ['AI SaaS', 'agentes autónomos', 'desarrollo web', 'IoT', 'FastAPI', 'Next.js', 'consultora tech'],
