@@ -5,7 +5,7 @@ import { poppins } from '@/theme/fonts'
 import { Providers } from './providers'
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://datheon.com'),
+  metadataBase: new URL('https://datheon.io'),
   title: {
     default: 'Datheón — AI SaaS, Agentes y Desarrollo Tech',
     template: '%s | Datheón',
