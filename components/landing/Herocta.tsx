@@ -37,7 +37,7 @@ import {
   Box, Button, Drawer, IconButton, Typography, alpha,
 } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
-import { FiCalendar, FiArrowRight, FiMessageCircle, FiX, FiCheck } from 'react-icons/fi'
+import { FiCalendar, FiArrowRight, FiMessageCircle, FiX} from 'react-icons/fi'
 import { useState, useCallback } from 'react'
 
 // tokens — copiar del Hero.tsx

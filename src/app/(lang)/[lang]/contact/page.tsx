@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/(lang)/[lang]/contact/page.tsx
 'use client'
 
 import {
@@ -236,35 +237,44 @@ export default function ContactPage({ params }: Props) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
 
-  const validate = () => {
-    const e: Record<string, string> = {}
-    if (!form.nombre.trim()) e.nombre = t.errors.nombre
-    if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = t.errors.email
-    if (!form.privacy) e.privacy = t.errors.privacy
-    setErrors(e)
-    return Object.keys(e).length === 0
+const validate = useCallback(() => {
+  const e: Record<string, string> = {}
+
+  if (!form.nombre.trim()) e.nombre = t.errors.nombre
+  if (!form.email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) e.email = t.errors.email
+  if (!form.privacy) e.privacy = t.errors.privacy
+
+  return e
+}, [form, t])
+
+const handleSubmit = useCallback(async () => {
+  const errors = validate()
+
+  if (Object.keys(errors).length > 0) {
+    setErrors(errors)
+    return
   }
 
-  const handleSubmit = useCallback(async () => {
-    if (!validate()) return
-    setLoading(true)
-    try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/v1/contact`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...form, lang }),
-        }
-      )
-      if (res.ok) setSuccess(true)
-      else setErrors({ send: t.errors.send })
-    } catch {
-      setErrors({ send: t.errors.send })
-    } finally {
-      setLoading(false)
-    }
-  }, [form, lang, t])
+  setLoading(true)
+
+  try {
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_FASTAPI_URL}/api/v1/contact`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...form, lang }),
+      }
+    )
+
+    if (res.ok) setSuccess(true)
+    else setErrors({ send: t.errors.send })
+  } catch {
+    setErrors({ send: t.errors.send })
+  } finally {
+    setLoading(false)
+  }
+}, [form, lang, t, validate])
 
   const handleKey = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit() }

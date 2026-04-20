@@ -1,8 +1,9 @@
+// File: frontend-datheon/components/landing/OurTeam.tsx
 'use client'
 
-import { Box, Typography, Button, Container, Avatar, alpha, Chip } from '@mui/material'
+import { Box, Typography, Button, Container, Avatar, alpha } from '@mui/material'
 import { FiLinkedin, FiGithub, FiCalendar, FiArrowRight, FiUsers } from 'react-icons/fi'
-import { SiPython, SiReact, SiNextdotjs, SiDocker, SiPostgresql, SiNodedotjs, SiTailwindcss, SiGo } from 'react-icons/si'
+import { SiPython, SiNextdotjs, SiDocker, SiPostgresql, SiNodedotjs,  SiGo } from 'react-icons/si'
 import { motion, useInView } from 'framer-motion'
 import { useCallback, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
@@ -253,13 +254,6 @@ function MemberCard({ member, index, isInView, lang }: {
   )
 }
 
-// ─── Main ────────────────────────────────────────────────────
-export default function OurTeam({ lang }: Props) {
-  const l = lang as Lang
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-60px' })
-  const [loading, setLoading] = useState(false)
-
   const uiText = {
     sectionLabel: { es: 'El equipo',         en: 'The team',         fr: "L'équipe"          },
     title:        { es: 'Especialistas,',     en: 'Specialists,',     fr: 'Spécialistes,'     },
@@ -282,35 +276,73 @@ export default function OurTeam({ lang }: Props) {
       fr: 'Êtes-vous développeur ou data scientist ? Nous cherchons toujours des talents.',
     },
   }
-  const tx = (k: keyof typeof uiText) =>
-    (uiText[k] as Record<string, string>)[l] ?? (uiText[k] as Record<string, string>)['es']
 
-  const handleCTA = useCallback(() => {
-    if (loading) return
-    setLoading(true)
+// ─── Main ────────────────────────────────────────────────────
+export default function OurTeam({ lang }: Props) {
+  const l = lang as Lang
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
+  const [loading, setLoading] = useState(false)
+
+
+const tx = useCallback(
+  (k: keyof typeof uiText) =>
+    uiText[k][l] ?? uiText[k]['es'],
+  [l]
+)
+
+const handleCTA = useCallback(() => {
+  if (loading) return
+  setLoading(true)
+
+  try {
     if (typeof window !== 'undefined') {
       const payload = {
-        canal: 'LandingPage', ubicacion: 'OurTeamSection',
+        canal: 'LandingPage',
+        ubicacion: 'OurTeamSection',
         idioma: navigator.language || 'es',
         timestamp: new Date().toISOString(),
-        evento_unico_id: crypto.randomUUID?.() ?? Math.random().toString(36),
+        evento_unico_id:
+          crypto.randomUUID?.() ?? Math.random().toString(36),
       }
-      if (window.fbq) window.fbq('trackCustom', 'TeamCTA', payload)
-      if (typeof ReactGA !== 'undefined') ReactGA.event({ category: 'Team', action: 'click_cta', value: 1 })
+
+      if (window.fbq) {
+        window.fbq('trackCustom', 'TeamCTA', payload)
+      }
+
+      if (typeof ReactGA !== 'undefined') {
+        ReactGA.event({
+          category: 'Team',
+          action: 'click_cta',
+          value: 1,
+        })
+      }
+
       window.dataLayer = window.dataLayer || []
-      window.dataLayer.push({ event: 'TeamCTA', ...payload })
+      window.dataLayer.push({
+        event: 'TeamCTA',
+        ...payload,
+      })
 
       const w = 800, h = 700
+
       const win = window.open(
         'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
         'Calendly',
-        `width=${w},height=${h},left=${window.screenX + (window.innerWidth - w) / 2},top=${window.screenY + (window.innerHeight - h) / 2}`
+        `width=${w},height=${h},left=${
+          window.screenX + (window.innerWidth - w) / 2
+        },top=${window.screenY + (window.innerHeight - h) / 2}`
       )
+
       if (win) win.focus()
       else alert(tx('popup'))
     }
+  } catch (err) {
+    console.error(err)
+  } finally {
     setTimeout(() => setLoading(false), 1500)
-  }, [loading, l])
+  }
+}, [loading, tx])
 
   return (
     <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: C.bg }}>

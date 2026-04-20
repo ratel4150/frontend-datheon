@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/WorkProcess.tsx
 'use client'
 
 import { Box, Typography, Button, Container, alpha } from '@mui/material'
@@ -251,7 +252,7 @@ function StepCard({ step, index, isInView, lang, total }: {
   step: Step; index: number; isInView: boolean; lang: string; total: number
 }) {
   const isLast = index === total - 1
-  const isEven = index % 2 === 0
+ /*  const isEven = index % 2 === 0 */
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', position: 'relative' }}>

@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/WhyChooseUs.tsx
 'use client'
 
 import { Box, Typography, Container, alpha } from '@mui/material'
@@ -9,6 +10,7 @@ import { useEffect, useRef, useState } from 'react'
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip,
   Cell, CartesianGrid,
+  TooltipProps,
 } from 'recharts'
 
 // ─── Tokens ─────────────────────────────────────────────────
@@ -146,18 +148,52 @@ function AnimatedBar({ pct, color, inView }: { pct: number; color: string; inVie
   )
 }
 
+type DataPoint = {
+  label: string
+  pct: number
+  color: string
+}
+
+type CustomTooltipProps = TooltipProps<number, string> & {
+  active?: boolean
+  payload?: Array<{
+    payload: DataPoint
+  }>
+}
+
+
 // ─── Custom Tooltip ──────────────────────────────────────────
-function CustomTooltip({ active, payload }: any) {
+function CustomTooltip({ active, payload }: CustomTooltipProps) {
   if (!active || !payload?.length) return null
+
   const d = payload[0].payload
+
   return (
-    <Box sx={{
-      bgcolor: '#fff', border: `1px solid ${C.border}`,
-      borderRadius: '10px', px: 1.75, py: 1.25,
-      boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
-    }}>
-      <Typography sx={{ fontWeight: 700, fontSize: '0.82rem', color: d.color }}>{d.label}</Typography>
-      <Typography sx={{ fontSize: '0.75rem', color: C.textMid }}>{d.pct}% del stack</Typography>
+    <Box
+      sx={{
+        bgcolor: '#fff',
+        border: `1px solid ${C.border}`,
+        borderRadius: '10px',
+        px: 1.75,
+        py: 1.25,
+        boxShadow: '0 4px 16px rgba(0,0,0,0.10)',
+      }}
+    >
+      <Typography
+        sx={{
+          fontWeight: 700,
+          fontSize: '0.82rem',
+          color: d.color,
+        }}
+      >
+        {d.label}
+      </Typography>
+
+      <Typography
+        sx={{ fontSize: '0.75rem', color: C.textMid }}
+      >
+        {d.pct}% del stack
+      </Typography>
     </Box>
   )
 }

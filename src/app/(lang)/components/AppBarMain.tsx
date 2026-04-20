@@ -7,13 +7,13 @@ import {
   Slide, Collapse, Divider, alpha,
 } from '@mui/material'
 import {
-  FaMoon, FaBars, FaChevronDown, FaChevronUp,
+  FaMoon, 
 } from 'react-icons/fa'
 import {
   FiBook, FiBookmark, FiBriefcase, FiCalendar, FiChevronDown,
-  FiChevronRight, FiChevronUp, FiCode, FiDollarSign, FiGrid,
+  FiChevronRight,  FiCode, FiDollarSign, FiGrid,
   FiHeart, FiLayers, FiMenu, FiArrowRight, FiTool, FiX,
-  FiZap,
+  
 } from 'react-icons/fi'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useEffect, useRef, useState } from 'react'

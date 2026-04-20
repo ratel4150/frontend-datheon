@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/Testimonials.tsx
 'use client'
 
 import { Box, Typography, Button, Container, Avatar, alpha } from '@mui/material'
@@ -185,14 +186,7 @@ function TestimonialCard({ t, index, isInView }: { t: Testimonial; index: number
   )
 }
 
-// ─── Main ────────────────────────────────────────────────────
-export default function Testimonials({ lang }: Props) {
-  const l = lang as Lang
-  const ref = useRef(null)
-  const isInView = useInView(ref, { once: true, margin: '-60px' })
-  const [loading, setLoading] = useState(false)
-
-  const uiText = {
+ const uiText = {
     sectionLabel: { es: 'Testimonios',         en: 'Testimonials',       fr: 'Témoignages'          },
     title:        { es: 'Lo que dicen nuestros clientes', en: 'What our clients say', fr: 'Ce que disent nos clients' },
     titleAccent:  { es: 'sobre trabajar con nosotros.', en: 'about working with us.', fr: 'sur le fait de travailler avec nous.' },
@@ -208,36 +202,67 @@ export default function Testimonials({ lang }: Props) {
       en: 'Please allow popups to access Calendly.',
       fr: 'Veuillez autoriser les fenêtres pop-up pour accéder à Calendly.',
     },
-  }
-  const tx = (k: keyof typeof uiText) =>
-    (uiText[k] as Record<string, string>)[l] ?? (uiText[k] as Record<string, string>)['es']
+  } as const
 
-  const handleCTA = useCallback(() => {
-    if (loading) return
-    setLoading(true)
+// ─── Main ────────────────────────────────────────────────────
+export default function Testimonials({ lang }: Props) {
+  const l = lang as Lang
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
+  const [loading, setLoading] = useState(false)
+
+ 
+ const tx = useCallback(
+  (k: keyof typeof uiText) =>
+    uiText[k][l] ?? uiText[k]['es'],
+  [l]
+)
+
+ const handleCTA = useCallback(() => {
+  if (loading) return
+  setLoading(true)
+
+  try {
     if (typeof window !== 'undefined') {
       const payload = {
-        canal: 'LandingPage', ubicacion: 'TestimonialsSection',
+        canal: 'LandingPage',
+        ubicacion: 'TestimonialsSection',
         idioma: navigator.language || 'es',
         timestamp: new Date().toISOString(),
-        evento_unico_id: crypto.randomUUID?.() ?? Math.random().toString(36),
+        evento_unico_id:
+          crypto.randomUUID?.() ?? Math.random().toString(36),
       }
+
       if (window.fbq) window.fbq('trackCustom', 'TestimonialsCTA', payload)
-      if (typeof ReactGA !== 'undefined') ReactGA.event({ category: 'Testimonials', action: 'click_cta', value: 1 })
+
+      if (typeof ReactGA !== 'undefined') {
+        ReactGA.event({
+          category: 'Testimonials',
+          action: 'click_cta',
+          value: 1,
+        })
+      }
+
       window.dataLayer = window.dataLayer || []
       window.dataLayer.push({ event: 'TestimonialsCTA', ...payload })
 
       const w = 800, h = 700
+
       const win = window.open(
         'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
         'Calendly',
-        `width=${w},height=${h},left=${window.screenX + (window.innerWidth - w) / 2},top=${window.screenY + (window.innerHeight - h) / 2}`
+        `width=${w},height=${h},left=${
+          window.screenX + (window.innerWidth - w) / 2
+        },top=${window.screenY + (window.innerHeight - h) / 2}`
       )
+
       if (win) win.focus()
       else alert(tx('popup'))
     }
+  } finally {
     setTimeout(() => setLoading(false), 1500)
-  }, [loading, l])
+  }
+}, [loading, tx])
 
   // Aggregate stats
   const avgRating = (TESTIMONIALS.reduce((s, t) => s + t.rating, 0) / TESTIMONIALS.length).toFixed(1)

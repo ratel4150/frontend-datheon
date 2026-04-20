@@ -1,11 +1,12 @@
+// File: frontend-datheon/components/landing/OurSrvices.tsx
 'use client'
 
 import { Box, Typography, Button, Container, Chip, alpha } from '@mui/material'
 import {
   FiCheck, FiCalendar, FiArrowRight,
-  FiCpu, FiZap, FiUsers, FiLayers,
+  FiCpu, FiZap,  FiLayers,
   FiSmartphone, FiCloud, FiDatabase, FiWifi,
-  FiBox, FiActivity,
+  FiBox, 
 } from 'react-icons/fi'
 import ReactGA from 'react-ga4'
 import { useCallback, useEffect, useRef, useState } from 'react'

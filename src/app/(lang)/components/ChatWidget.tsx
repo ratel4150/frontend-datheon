@@ -6,8 +6,8 @@ import {
   Avatar, Fab, alpha,
 } from '@mui/material'
 import { FiMessageCircle, FiX, FiSend } from 'react-icons/fi'
-import { useChat } from 'ai/react'
-import { useRef, useEffect, useState } from 'react'
+import { Message, useChat } from 'ai/react'
+import { useRef, useEffect, useState, BaseSyntheticEvent } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // ─── Tokens ──────────────────────────────────────────────────
@@ -78,13 +78,12 @@ export function ChatWidget({ lang }: Props) {
       setTimeout(() => inputRef.current?.focus(), 100)
     }
   }, [open])
-
-  const handleKey = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSubmit(e as any)
-    }
+const handleKey = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    handleSubmit(e as unknown as BaseSyntheticEvent)
   }
+}
 
   return (
     <>
@@ -217,7 +216,7 @@ export function ChatWidget({ lang }: Props) {
               '&::-webkit-scrollbar': { width: '3px' },
               '&::-webkit-scrollbar-thumb': { bgcolor: C.border, borderRadius: 2 },
             }}>
-              {messages.map((m:any) => (
+              {messages.map((m:Message) => (
                 <Box
                   key={m.id}
                   component={motion.div}
