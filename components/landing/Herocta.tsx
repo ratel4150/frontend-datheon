@@ -36,7 +36,7 @@
 import {
   Box, Button, Drawer, IconButton, Typography, alpha,
 } from '@mui/material'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, type Variants } from 'framer-motion'
 import { FiCalendar, FiArrowRight, FiMessageCircle, FiX} from 'react-icons/fi'
 import { useState, useCallback } from 'react'
 
@@ -111,15 +111,14 @@ export function HeroCTABlock({ lang, onCTA }: { lang: string; onCTA: () => void 
 
   const item = {
     hidden: { opacity: 0, y: 24 },
-    show:   { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+    show:   { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] } },
   }
 
   return (
     <>
       {/* ── CTA buttons row ── */}
       <Box
-        component={motion.div}
-        variants={item}
+       component={motion.div as any} variants={item as any}
         sx={{
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           gap: 1.5, flexWrap: 'wrap', mb: 1.5,
@@ -185,8 +184,7 @@ export function HeroCTABlock({ lang, onCTA }: { lang: string; onCTA: () => void 
 
       {/* ── Social proof ── */}
       <Box
-        component={motion.div}
-        variants={item}
+        component={motion.div as any} variants={item as any}
         sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 0.75, mb: 3 }}
       >
         <Box sx={{
@@ -305,7 +303,7 @@ export function HeroCTABlock({ lang, onCTA }: { lang: string; onCTA: () => void 
             {/* Step 1: Calendly inline */}
             {step === 1 && (
               <Box
-                component={motion.div}
+                component={motion.div as any}
                 key="step1"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
