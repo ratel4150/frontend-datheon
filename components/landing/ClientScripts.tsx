@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/ClientScripts.tsx
 // src/components/landing/ClientScripts.tsx
 'use client'
 

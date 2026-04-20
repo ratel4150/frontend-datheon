@@ -1,435 +1,423 @@
 'use client'
 
-import React, { useState, useEffect, useRef, useCallback } from 'react'
-import { Box, Typography, IconButton, useMediaQuery, useTheme, Button } from '@mui/material'
+import { Box, Typography, Button, Container, alpha } from '@mui/material'
 import {
-  MdArrowBackIosNew,
-  MdArrowForwardIos,
-  MdBusiness,
-  
-  MdPeople,
-
-  MdLocalShipping,
-
-  MdGavel,
-  MdShoppingCart,
-  MdAttachMoney,
-  MdPhoneIphone,
-  MdLocalHospital,
-  MdSchool,
-  MdSecurity,
-  MdBuild,
-  MdStore,
-  MdAgriculture,
-  MdElectricalServices,
-  MdDirectionsCar,
-  MdPublic,
-  MdLiveTv,
-  MdFlight,
-  MdSportsSoccer,
-  MdKeyboardArrowRight,
+  MdShoppingCart, MdAttachMoney, MdPhoneIphone, MdLocalHospital,
+  MdGavel, MdSchool, MdBusiness, MdSecurity, MdLocalShipping,
+  MdBuild, MdStore, MdAgriculture, MdElectricalServices,
+  MdDirectionsCar, MdPublic, MdLiveTv, MdPeople, MdFlight, MdSportsSoccer,
 } from 'react-icons/md'
-import { motion, AnimatePresence } from 'framer-motion'
+import { FiCalendar, FiArrowRight } from 'react-icons/fi'
+import { motion, useInView } from 'framer-motion'
+import { useCallback, useRef, useState } from 'react'
+import ReactGA from 'react-ga4'
 
-const SECTORS = [
-  {
-    title: 'Comercio Electrónico',
-    description: 'Chatbots conversacionales (+40% satisfacción cliente) + Motores de recomendación con IA (+35% ticket promedio) + Checkout inteligente (-30% abandonos)',
-    icon: <MdShoppingCart size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Banca Digital',
-    description: 'Scoring crediticio con IA (+25% precisión) + Chatbots para servicio al cliente (+80% autogestión) + Plataformas de inversión algorítmica',
-    icon: <MdAttachMoney size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Telecomunicaciones',
-    description: 'Asistentes virtuales para soporte técnico (+65% resolución automática) + Plataformas de análisis de red (+90% detección de fallos) + Sistemas antifraude con machine learning',
-    icon: <MdPhoneIphone size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Salud Digital',
-    description: 'Historiales médicos inteligentes (+50% eficiencia) + Diagnóstico asistido por IA (+30% precisión) + Plataformas de telemedicina con seguimiento en tiempo real',
-    icon: <MdLocalHospital size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Tecnología Legal',
-    description: 'Análisis de contratos con NLP (70% más rápido) + Generación automática de documentos legales (+90% precisión) + Gestión predictiva de riesgos en litigios',
-    icon: <MdGavel size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Educación Tecnológica',
-    description: 'Plataformas de aprendizaje adaptativo (+45% retención estudiantil) + Herramientas de supervisión de exámenes con visión artificial + Sistemas de gestión educativa integral',
-    icon: <MdSchool size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Propiedad Inteligente',
-    description: 'Valoración automática de propiedades con IA (+25% precisión) + Tours virtuales 360° (+40% engagement) + CRMs con seguimiento inteligente de clientes potenciales',
-    icon: <MdBusiness size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Tecnología en Seguros',
-    description: 'Procesamiento automático de siniestros (-70% tiempo de gestión) + Sistemas de detección de fraude (+95% efectividad) + Plataformas de suscripción automatizada',
-    icon: <MdSecurity size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Logística Inteligente',
-    description: 'Optimización de rutas con IA (-25% consumo de combustible) + Gestión predictiva de flotas (+99% disponibilidad) + Plataformas de última milla con geolocalización',
-    icon: <MdLocalShipping size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Manufactura Avanzada',
-    description: 'Mantenimiento predictivo (-30% tiempo de inactividad) + Control de calidad con visión artificial (+99% detección de defectos) + Gemelos digitales para simulación',
-    icon: <MdBuild size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Retail Tecnológico',
-    description: 'Gestión de inventario automatizada (+30% rotación) + Fijación de precios dinámica con IA (+15% margen) + Plataformas omnicanal unificadas',
-    icon: <MdStore size={36} color="#00ADD8" />
-  },
-  {
-    title: 'AgroTecnología',
-    description: 'Monitoreo de cultivos con drones (+20% rendimiento) + Sistemas de riego inteligente (-40% consumo de agua) + Blockchain para trazabilidad alimentaria',
-    icon: <MdAgriculture size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Energía Inteligente',
-    description: 'Gestión energética con IA (-25% consumo) + Mantenimiento predictivo de infraestructura + Plataformas de trading energético automatizado',
-    icon: <MdElectricalServices size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Movilidad del Futuro',
-    description: 'Sistemas de gestión de flotas compartidas + Plataformas de movilidad como servicio (MaaS) + Soluciones de estacionamiento inteligente con sensores IoT',
-    icon: <MdDirectionsCar size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Gobierno Digital',
-    description: 'Plataformas de servicios ciudadanos (+50% eficiencia) + Herramientas de transparencia automatizadas + Análisis de datos públicos con machine learning',
-    icon: <MdPublic size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Medios Tecnológicos',
-    description: 'Recomendación de contenido personalizado (+40% engagement) + Generación automática de resúmenes con IA + Plataformas de streaming optimizadas con CDN inteligente',
-    icon: <MdLiveTv size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Tecnología en RH',
-    description: 'Reclutamiento asistido por IA (+60% velocidad de contratación) + Onboarding automatizado + Herramientas de análisis de productividad de equipos',
-    icon: <MdPeople size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Turismo Tecnológico',
-    description: 'Sistemas de recomendación personalizada (+35% tasa de conversión) + Chatbots para atención al cliente 24/7 + Plataformas de gestión hotelera todo-en-uno',
-    icon: <MdFlight size={36} color="#00ADD8" />
-  },
-  {
-    title: 'Deportes Tech',
-    description: 'Análisis de rendimiento con visión artificial + Plataformas de entrenamiento personalizado con IA + Sistemas de scouting automatizado para talentos',
-    icon: <MdSportsSoccer size={36} color="#00ADD8" />
-  }
-];
+// ─── Tokens ─────────────────────────────────────────────────
+const C = {
+  bg:         '#F7FBFF',
+  cardBg:     '#FFFFFF',
+  border:     '#ebebeb',
+  text:       '#0B0F2B',
+  textMid:    '#4A5068',
+  textMute:   '#8891AA',
+  accent:     '#00AEEF',
+  accentDk:   '#0095cc',
+  accentBg:   'rgba(0,174,239,0.07)',
+  accentLine: 'rgba(0,174,239,0.22)',
+} as const
 
-const VISIBLE_COLUMNS = 3
-const VISIBLE_ROWS = 2
-/* const VISIBLE_COUNT = VISIBLE_COLUMNS * VISIBLE_ROWS */
+type Lang = 'es' | 'en' | 'fr'
+type Props = { lang: string }
 
-const variants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 300 : -300,
-    opacity: 0,
-    scale: 0.9,
-  }),
-  center: {
-    x: 0,
-    opacity: 1,
-    scale: 1,
-    transition: { duration: 0.5 },
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 300 : -300,
-    opacity: 0,
-    scale: 0.9,
-    transition: { duration: 0.5 },
-  }),
-}
-type Props={
-  lang:string
+// ─── Sector data ─────────────────────────────────────────────
+interface Sector {
+  icon: React.ReactNode
+  color: string
+  title: { es: string; en: string; fr: string }
+  metrics: string[]
 }
 
-export default function MultipleItemsCarousel({lang}:Props) {
- const theme = useTheme()
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
-  const columns = isMobile ? 1 : VISIBLE_COLUMNS
-  const rows = isMobile ? 1 : VISIBLE_ROWS
-  const visibleCount = columns * rows
+const SECTORS: Sector[] = [
+  {
+    icon: <MdShoppingCart size={20}/>, color: '#F59E0B',
+    title: { es: 'E-commerce', en: 'E-commerce', fr: 'E-commerce' },
+    metrics: ['+35% ticket promedio', '-30% abandonos', '+40% satisfacción'],
+  },
+  {
+    icon: <MdAttachMoney size={20}/>, color: '#10B981',
+    title: { es: 'Banca Digital', en: 'Digital Banking', fr: 'Banque Digitale' },
+    metrics: ['+25% precisión scoring', '+80% autogestión', 'Anti-fraude ML'],
+  },
+  {
+    icon: <MdPhoneIphone size={20}/>, color: '#6366F1',
+    title: { es: 'Telecomunicaciones', en: 'Telecom', fr: 'Télécommunications' },
+    metrics: ['+65% resolución automática', '+90% detección fallos'],
+  },
+  {
+    icon: <MdLocalHospital size={20}/>, color: '#EF4444',
+    title: { es: 'Salud Digital', en: 'Digital Health', fr: 'Santé Digitale' },
+    metrics: ['+50% eficiencia', '+30% precisión diagnóstico'],
+  },
+  {
+    icon: <MdGavel size={20}/>, color: '#8B5CF6',
+    title: { es: 'Legal Tech', en: 'Legal Tech', fr: 'Legal Tech' },
+    metrics: ['70% más rápido NLP', '+90% precisión docs'],
+  },
+  {
+    icon: <MdSchool size={20}/>, color: '#F97316',
+    title: { es: 'Edu Tech', en: 'Edu Tech', fr: 'Edu Tech' },
+    metrics: ['+45% retención', 'Visión artificial exámenes'],
+  },
+  {
+    icon: <MdBusiness size={20}/>, color: '#0EA5E9',
+    title: { es: 'Real Estate', en: 'Real Estate', fr: 'Immobilier' },
+    metrics: ['+25% precisión valuación', '+40% engagement 360°'],
+  },
+  {
+    icon: <MdSecurity size={20}/>, color: '#EC4899',
+    title: { es: 'InsurTech', en: 'InsurTech', fr: 'InsurTech' },
+    metrics: ['-70% tiempo siniestros', '+95% detección fraude'],
+  },
+  {
+    icon: <MdLocalShipping size={20}/>, color: '#14B8A6',
+    title: { es: 'Logística', en: 'Logistics', fr: 'Logistique' },
+    metrics: ['-25% combustible', '+99% disponibilidad flota'],
+  },
+  {
+    icon: <MdBuild size={20}/>, color: '#F59E0B',
+    title: { es: 'Manufactura', en: 'Manufacturing', fr: 'Industrie' },
+    metrics: ['-30% inactividad', '+99% detección defectos'],
+  },
+  {
+    icon: <MdStore size={20}/>, color: '#6366F1',
+    title: { es: 'Retail', en: 'Retail', fr: 'Commerce de détail' },
+    metrics: ['+30% rotación inventario', '+15% margen'],
+  },
+  {
+    icon: <MdAgriculture size={20}/>, color: '#22C55E',
+    title: { es: 'AgroTech', en: 'AgroTech', fr: 'AgroTech' },
+    metrics: ['+20% rendimiento cultivos', '-40% agua IoT'],
+  },
+  {
+    icon: <MdElectricalServices size={20}/>, color: '#EAB308',
+    title: { es: 'Energía', en: 'Energy', fr: 'Énergie' },
+    metrics: ['-25% consumo IA', 'Mantenimiento predictivo'],
+  },
+  {
+    icon: <MdDirectionsCar size={20}/>, color: '#3B82F6',
+    title: { es: 'Movilidad', en: 'Mobility', fr: 'Mobilité' },
+    metrics: ['MaaS platforms', 'IoT parking inteligente'],
+  },
+  {
+    icon: <MdPublic size={20}/>, color: '#0891B2',
+    title: { es: 'Gobierno Digital', en: 'Gov Tech', fr: 'Gov Tech' },
+    metrics: ['+50% eficiencia servicios', 'Transparencia ML'],
+  },
+  {
+    icon: <MdLiveTv size={20}/>, color: '#A855F7',
+    title: { es: 'Media Tech', en: 'Media Tech', fr: 'Médias' },
+    metrics: ['+40% engagement', 'Resúmenes IA automáticos'],
+  },
+  {
+    icon: <MdPeople size={20}/>, color: '#F43F5E',
+    title: { es: 'HR Tech', en: 'HR Tech', fr: 'RH Tech' },
+    metrics: ['+60% velocidad contratación', 'Onboarding automático'],
+  },
+  {
+    icon: <MdFlight size={20}/>, color: '#06B6D4',
+    title: { es: 'Turismo', en: 'Tourism', fr: 'Tourisme' },
+    metrics: ['+35% conversión', 'Chatbots 24/7'],
+  },
+  {
+    icon: <MdSportsSoccer size={20}/>, color: '#84CC16',
+    title: { es: 'Sports Tech', en: 'Sports Tech', fr: 'Sports Tech' },
+    metrics: ['Visión artificial rendimiento', 'Scouting IA'],
+  },
+]
 
-  const [page, setPage] = useState(0)
-  const [direction, setDirection] = useState(1)
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
+const uiText = {
+  sectionLabel: { es: 'Sectores especializados', en: 'Specialized sectors', fr: 'Secteurs spécialisés' },
+  title:        { es: 'Industrias donde hemos', en: 'Industries where we have', fr: 'Industries où nous avons' },
+  titleAccent:  { es: 'generado impacto real.', en: 'generated real impact.', fr: 'généré un impact réel.' },
+  subtitle: {
+    es: 'Experiencia comprobada en 19 sectores con soluciones de automatización específicas que generan resultados medibles.',
+    en: 'Proven expertise across 19 sectors with tailored automation solutions that deliver measurable results.',
+    fr: 'Expertise éprouvée dans 19 secteurs avec des solutions d\'automatisation sur mesure qui génèrent des résultats mesurables.',
+  },
+  cta:     { es: 'Hablar sobre mi industria', en: 'Talk about my industry', fr: 'Parler de mon industrie' },
+  loading: { es: 'Cargando…', en: 'Loading…', fr: 'Chargement…' },
+  popup: {
+    es: 'Permite ventanas emergentes para acceder a Calendly.',
+    en: 'Please allow popups to access Calendly.',
+    fr: 'Veuillez autoriser les fenêtres pop-up pour accéder à Calendly.',
+  },
+}
+const tx = (k: keyof typeof uiText, l: string): string =>
+  (uiText[k] as Record<string, string>)[l] ?? (uiText[k] as Record<string, string>)['es']
 
-  const total = SECTORS.length
-  const pages = Math.ceil(total / visibleCount)
-
-  const next = useCallback(() => {
-    setDirection(1)
-    setPage((prev) => (prev + 1) % pages)
-  }, [pages])
-
-  const prev = useCallback(() => {
-    setDirection(-1)
-    setPage((prev) => (prev - 1 + pages) % pages)
-  }, [pages])
-
-  useEffect(() => {
-    timeoutRef.current = setTimeout(() => {
-      next()
-    }, 7000)
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current)
-    }
-  }, [page, next])
-
-  const getVisibleItems = () => {
-    const items = []
-    for (let i = 0; i < visibleCount; i++) {
-      items.push(SECTORS[(page * visibleCount + i) % total])
-    }
-    return items
-  }
-
-  const visibleItems = getVisibleItems()
-
+// ─── Sector Card ─────────────────────────────────────────────
+function SectorCard({ sector, index, isInView, lang }: {
+  sector: Sector; index: number; isInView: boolean; lang: string
+}) {
+  const [hovered, setHovered] = useState(false)
+  const title = sector.title[lang as Lang] ?? sector.title.es
 
   return (
     <Box
+      component={motion.div}
+      initial={{ opacity: 0, scale: 0.94 }}
+      animate={isInView ? { opacity: 1, scale: 1 } : {}}
+      transition={{ duration: 0.4, delay: (index % 5) * 0.06 + Math.floor(index / 5) * 0.08, ease: [0.22, 1, 0.36, 1] }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
       sx={{
-        py: 10,
-        px: 4,
-        bgcolor: 'white',
         position: 'relative',
-        maxWidth: 1080,
-        mx: 'auto',
+        bgcolor: C.cardBg,
+        border: `1px solid ${hovered ? alpha(sector.color, 0.4) : C.border}`,
+        borderRadius: '16px',
+        p: 2,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 1.25,
         overflow: 'hidden',
+        cursor: 'default',
+        transition: 'border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease',
+        transform: hovered ? 'translateY(-3px)' : 'translateY(0)',
+        boxShadow: hovered
+          ? `0 8px 24px ${alpha(sector.color, 0.14)}`
+          : '0 1px 4px rgba(0,0,0,0.04)',
       }}
     >
- <Typography
-  variant="h3"
-  textAlign="center"
-  sx={{ mb: 1, fontWeight: 700, fontFamily: 'Poppins', color: '#333' }}
->
-  {lang === 'es'
-    ? 'Nuestros Sectores Especializados'
-    : lang === 'en'
-    ? 'Our Specialized Sectors'
-    : 'Nos Secteurs Spécialisés'}
-</Typography>
+      {/* Color top line */}
+      <Box sx={{
+        position: 'absolute', top: 0, left: 0, right: 0,
+        height: 2, bgcolor: sector.color,
+        opacity: hovered ? 1 : 0,
+        transition: 'opacity 0.2s ease',
+      }}/>
 
-<Typography
-  variant="subtitle1"
-  textAlign="center"
-  sx={{
-    mb: 6,
-    fontFamily: 'Poppins',
-    color: '#555',
-    maxWidth: 600,
-    mx: 'auto',
-  }}
->
-  {lang === 'es' ? (
-    <>
-      Experiencia comprobada en múltiples industrias con soluciones de <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>automatización específicas</Box> que generan <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>resultados medibles</Box> en cada sector.
-    </>
-  ) : lang === 'en' ? (
-    <>
-      Proven expertise across multiple industries with <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>tailored automation solutions</Box> that deliver <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>measurable results</Box> in every sector.
-    </>
-  ) : (
-   <>
-  Expertise éprouvée dans multiples industries avec des <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>solutions d&rsquo;automatisation sur mesure</Box> qui génèrent des <Box component="span" sx={{ color: '#00ADD8', fontWeight: 600 }}>résultats mesurables</Box> dans chaque secteur.
-</>
-  )}
-</Typography>
-
-    <IconButton
-  aria-label="Anterior"
-  onClick={() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    prev();
-  }}
-  sx={{
-    bgcolor: '#00ADD8',
-    color: 'white',
-    '&:hover': { bgcolor: '#007EA7' },
-    position: 'absolute',
-    top: '60%',
-    left: 0,
-    transform: 'translateY(-50%)',
-    width: 44,
-    height: 44,
-    zIndex: 10,
-    boxShadow: '0 3px 8px rgba(0, 173, 216, 0.5)',
-    borderRadius: '50%',
-  }}
->
-  <MdArrowBackIosNew size={24} />
-</IconButton>
-
-<IconButton
-  aria-label="Siguiente"
-  onClick={() => {
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    next();
-  }}
-  sx={{
-    bgcolor: '#00ADD8',
-    color: 'white',
-    '&:hover': { bgcolor: '#007EA7' },
-    position: 'absolute',
-    top: '60%',
-    right: 0,
-    transform: 'translateY(-50%)',
-    width: 44,
-    height: 44,
-    zIndex: 10,
-    boxShadow: '0 3px 8px rgba(0, 173, 216, 0.5)',
-    borderRadius: '50%',
-  }}
->
-  <MdArrowForwardIos size={24} />
-</IconButton>
-
-     <Box
-  sx={{
-    display: 'grid',
-    gridTemplateColumns: `repeat(${columns}, 1fr)`,
-    gridAutoRows: 'minmax(400px, auto)', // 🔥 evita encimado
-    gap: 3,
-  }}
->
-
-        <AnimatePresence initial={false} custom={direction} mode="popLayout">
-          {visibleItems.map((sector) => (
-            <motion.div
-              key={sector.title}
-              custom={direction}
-              variants={variants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              
-              layout
-              style={{
-                originX: 0.5,
-                originY: 0.5,
-              }}
-            >
-        <Box
-  sx={{
-    height: 380, // subimos de 340 a 380 para incluir espacio del ícono
-    backgroundColor: '#fff',
-    borderRadius: 4,
-    boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-    px: 3,
-    pt: 9, // subimos padding top para dejar espacio interior
-    pb: 3,
-    border: '1px dotted #00ADD8',
-    position: 'relative',
-    display: 'flex',
-    flexDirection: 'column',
-    justifyContent: 'space-between',
-    transition: 'transform 0.3s ease',
-    mt: 4, // margen superior entre filas para evitar que se encimen
-    '&:hover': {
-      transform: 'translateY(-5px)',
-    },
-  }}
->
-  {/* Icono circular flotante */}
-  <Box
-    sx={{
-      position: 'absolute',
-      top: 0,
-      left: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: 60,
-      height: 60,
-      borderRadius: '50%',
-      backgroundColor: '#fff',
-      border: '2px solid #00ADD8',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 6px 20px rgba(0,0,0,0.15)',
-      zIndex: 5,
-    }}
-  >
-    {sector.icon}
-  </Box>
-
-                <Typography
-                  variant="h6"
-                  sx={{
-                    fontFamily: 'Poppins',
-                    fontWeight: 700,
-                    color: '#00ADD8',
-                    mt: 5,
-                    mb: 1.5,
-                    textAlign: 'center',
-                  }}
-                >
-                  {sector.title}
-                </Typography>
-                <Typography
-                  variant="body2"
-                  sx={{
-                    fontFamily: 'Poppins',
-                    color: '#555',
-                    textAlign: 'justify',
-                    lineHeight: 1.5,
-                    px: 1,
-                  }}
-                >
-                  {sector.description}
-                </Typography>
-                
-
-           <Button
-  variant="contained"
-  size="medium"
-  fullWidth
-  endIcon={<MdKeyboardArrowRight />}
-  sx={{
-   
-    mx: 'auto',
-    mt: 3,
-    bgcolor: '#00ADD8',
-    color: '#fff',
-    fontWeight: 700,
-    py: 1.5,
-    borderRadius: 2,
-    textTransform: 'none',
-    fontSize: '1rem',
-    fontFamily: 'Poppins',
-    boxShadow: '0 6px 20px rgba(0,173,216,0.3)',
-    transition: 'background-color 0.3s ease',
-    '&:hover': {
-      bgcolor: '#007EA7',
-    },
-  }}
->
-  {lang === 'es'
-    ? 'Ver soluciones'
-    : lang === 'en'
-    ? 'View Solutions'
-    : 'Voir les solutions'}
-</Button>
-
-
-              </Box>
-            </motion.div>
-          ))}
-        </AnimatePresence>
+      {/* Icon + title row */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{
+          width: 34, height: 34, borderRadius: '9px', flexShrink: 0,
+          bgcolor: hovered ? sector.color : alpha(sector.color, 0.10),
+          color: hovered ? '#fff' : sector.color,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          transition: 'all 0.2s ease',
+        }}>
+          {sector.icon}
+        </Box>
+        <Typography sx={{
+          fontWeight: 700, fontSize: '0.82rem',
+          color: C.text, lineHeight: 1.2,
+        }}>
+          {title}
+        </Typography>
       </Box>
+
+      {/* Metrics — revealed with smooth height */}
+      <Box sx={{
+        overflow: 'hidden',
+        maxHeight: hovered ? '120px' : '0px',
+        opacity: hovered ? 1 : 0,
+        transition: 'max-height 0.3s ease, opacity 0.25s ease',
+      }}>
+        {sector.metrics.map((m, i) => (
+          <Box key={i} sx={{
+            display: 'flex', alignItems: 'center', gap: 0.75,
+            mb: i < sector.metrics.length - 1 ? 0.5 : 0,
+          }}>
+            <Box sx={{
+              width: 4, height: 4, borderRadius: '50%',
+              bgcolor: sector.color, flexShrink: 0,
+            }}/>
+            <Typography sx={{
+              fontSize: '0.7rem', color: C.textMid, lineHeight: 1.4,
+            }}>
+              {m}
+            </Typography>
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  )
+}
+
+// ─── Main ────────────────────────────────────────────────────
+export default function OurSpecializedSectors({ lang }: Props) {
+  const l = lang in uiText.title ? lang : 'es'
+  const ref = useRef(null)
+  const isInView = useInView(ref, { once: true, margin: '-60px' })
+  const [loading, setLoading] = useState(false)
+
+  const handleCTA = useCallback(() => {
+    if (loading) return
+    setLoading(true)
+    if (typeof window !== 'undefined') {
+      const payload = {
+        canal: 'LandingPage', ubicacion: 'SectorsSection',
+        idioma: navigator.language || 'es',
+        timestamp: new Date().toISOString(),
+        evento_unico_id: crypto.randomUUID?.() ?? Math.random().toString(36),
+      }
+      if (window.fbq) window.fbq('trackCustom', 'SectorsCTA', payload)
+      if (typeof ReactGA !== 'undefined') ReactGA.event({ category: 'Sectors', action: 'click_cta', value: 1 })
+      window.dataLayer = window.dataLayer || []
+      window.dataLayer.push({ event: 'SectorsCTA', ...payload })
+      const w = 800, h = 700
+      const win = window.open(
+        'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
+        'Calendly',
+        `width=${w},height=${h},left=${window.screenX + (window.innerWidth - w) / 2},top=${window.screenY + (window.innerHeight - h) / 2}`
+      )
+      if (win) win.focus()
+      else alert(tx('popup', l))
+    }
+    setTimeout(() => setLoading(false), 1500)
+  }, [loading, l])
+
+  return (
+    <Box component="section" sx={{ py: { xs: 8, md: 11 }, bgcolor: C.bg }}>
+      <Container maxWidth="lg">
+
+        {/* Header */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 20 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.6 }}
+          sx={{ textAlign: 'center', mb: { xs: 5, md: 6 } }}
+        >
+          <Box sx={{
+            display: 'inline-flex', alignItems: 'center', gap: 0.75,
+            px: 1.75, py: 0.6,
+            border: `1px solid ${C.accentLine}`,
+            borderRadius: '100px', bgcolor: C.accentBg, mb: 2,
+          }}>
+            <Typography sx={{
+              fontSize: '0.72rem', fontWeight: 600, color: C.textMid,
+              letterSpacing: '0.06em', textTransform: 'uppercase',
+            }}>
+              {tx('sectionLabel', l)}
+            </Typography>
+          </Box>
+
+          <Typography variant="h2" sx={{
+            fontFamily: 'Poppins, sans-serif',
+            fontWeight: 800, fontSize: { xs: '2rem', md: '2.75rem' },
+            color: C.text, lineHeight: 1.15, letterSpacing: '-0.02em',
+          }}>
+            {tx('title', l)}{' '}
+            <Box component="span" sx={{ color: C.accent }}>{tx('titleAccent', l)}</Box>
+          </Typography>
+
+          <Typography sx={{
+            mt: 1.5,
+            fontSize: { xs: '0.95rem', md: '1.05rem' },
+            color: C.textMid, maxWidth: 560, mx: 'auto',
+            lineHeight: 1.75, fontWeight: 400,
+          }}>
+            {tx('subtitle', l)}
+          </Typography>
+        </Box>
+
+        {/* Sectors grid */}
+        <Box
+          ref={ref}
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: {
+              xs: 'repeat(2, 1fr)',
+              sm: 'repeat(3, 1fr)',
+              md: 'repeat(4, 1fr)',
+              lg: 'repeat(5, 1fr)',
+            },
+            gap: { xs: 1.5, md: 2 },
+          }}
+        >
+          {SECTORS.map((sector, i) => (
+            <SectorCard
+              key={sector.title.es}
+              sector={sector}
+              index={i}
+              isInView={isInView}
+              lang={l}
+            />
+          ))}
+        </Box>
+
+        {/* Count badge */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0 }}
+          animate={isInView ? { opacity: 1 } : {}}
+          transition={{ delay: 0.9, duration: 0.5 }}
+          sx={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 2, mt: 4, mb: { xs: 4, md: 5 },
+          }}
+        >
+          <Box sx={{ height: 1, flex: 1, maxWidth: 200, bgcolor: C.border }}/>
+          <Box sx={{
+            px: 2, py: 0.75,
+            bgcolor: C.cardBg,
+            border: `1px solid ${C.border}`,
+            borderRadius: '100px',
+            display: 'flex', alignItems: 'center', gap: 1,
+          }}>
+            <Box sx={{
+              width: 6, height: 6, borderRadius: '50%',
+              bgcolor: C.accent,
+              animation: 'pulse 2s ease-in-out infinite',
+              '@keyframes pulse': {
+                '0%,100%': { opacity: 1 },
+                '50%': { opacity: 0.3 },
+              },
+            }}/>
+            <Typography sx={{
+              fontSize: '0.75rem', fontWeight: 600, color: C.textMid,
+            }}>
+              {SECTORS.length} {l === 'fr' ? 'secteurs couverts' : l === 'en' ? 'sectors covered' : 'sectores cubiertos'}
+            </Typography>
+          </Box>
+          <Box sx={{ height: 1, flex: 1, maxWidth: 200, bgcolor: C.border }}/>
+        </Box>
+
+        {/* CTA */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, y: 16 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ delay: 1.0, duration: 0.5 }}
+          sx={{ textAlign: 'center' }}
+        >
+          <Button
+            variant="contained"
+            size="large"
+            disabled={loading}
+            onClick={handleCTA}
+            startIcon={!loading ? <FiCalendar size={16}/> : undefined}
+            endIcon={!loading ? <FiArrowRight size={16}/> : undefined}
+            component={motion.button}
+            whileHover={{ scale: 1.02, y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            sx={{
+              bgcolor: C.accent, color: '#fff',
+              fontWeight: 700, fontSize: '0.95rem',
+              px: 4, py: 1.5, borderRadius: '12px',
+              textTransform: 'none',
+              boxShadow: `0 4px 20px ${alpha(C.accent, 0.35)}`,
+              '&:hover': {
+                bgcolor: C.accentDk,
+                boxShadow: `0 8px 28px ${alpha(C.accent, 0.45)}`,
+              },
+              '&.Mui-disabled': { bgcolor: alpha(C.accent, 0.4), color: '#fff' },
+            }}
+          >
+            {loading ? tx('loading', l) : tx('cta', l)}
+          </Button>
+        </Box>
+      </Container>
     </Box>
   )
 }

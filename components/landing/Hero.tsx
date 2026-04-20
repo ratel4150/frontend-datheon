@@ -1,832 +1,501 @@
+// File: components/landing/Hero.tsx
 'use client'
 
+import { Box, Typography, Container,  } from '@mui/material'
+import { motion, useInView,  } from 'framer-motion'
 
-import { Box, Typography, Button} from '@mui/material'
-import { motion, useInView } from 'framer-motion'
-import Link from 'next/link'
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react'
 import ReactGA from 'react-ga4'
 import {
-  SiJavascript,
-  SiTypescript,
-  SiPython,
-  SiPhp,
-  SiRuby,
-  SiGo,
-  SiRust,
-  SiKotlin,
-  SiSwift,
-  SiHtml5,
-  SiCss3,
-  SiSass,
-  SiTailwindcss,
-  SiReact,
-  SiNextdotjs,
-  SiAngular,
-  SiVuedotjs,
-  SiNodedotjs,
-  SiExpress,
-  SiNestjs,
-  SiMongodb,
-  SiPostgresql,
-  SiMysql,
-  SiRedis,
-  SiDocker,
-  SiKubernetes,
-  SiGraphql,
-  SiPrisma,
-  SiJest,
-  SiFlutter,
-  SiDart,
-  SiGit,
-  SiGithub,
-  SiGitlab,
-  SiLinux,
-  SiGooglecloud,
-  SiFirebase,
-  SiCplusplus,
-  SiC,
-  SiDotnet,
-  SiVite,
-  SiWebpack,
-  SiEslint,
-  SiPrettier,
-  SiNpm,
-  SiYarn,
-  SiBabel,
-  // Para n8n, si no existe el icono oficial en react-icons, se puede usar un SVG custom o un icono alternativo
-  // Ejemplo, si tienes el icono importado como SiN8n:
- 
-} from 'react-icons/si';
-import { getDeviceData } from '../../lib/tracking/deviceTracking';
+  SiJavascript, SiTypescript, SiPython, SiReact, SiNextdotjs,
+  SiNodedotjs, SiDocker, SiKubernetes, SiPostgresql, SiMongodb,
+  SiFlutter, SiGooglecloud, SiFirebase, SiGraphql, SiTailwindcss,
+  SiGo, SiRust, SiRedis, SiNestjs, SiGit,
+} from 'react-icons/si'
+import {  FiCheck } from 'react-icons/fi'
+import { getDeviceData } from '../../lib/tracking/deviceTracking'
+import { HeroCTABlock } from './Herocta'
 
+// ─── Tokens ──────────────────────────────────────────────────
+const C = {
+  bg:         '#FFFFFF',
+  bgGrid:     'rgba(0,174,239,0.035)',
+  text:       '#0B0F2B',
+  textMid:    '#4A5068',
+  textMute:   '#8891AA',
+  accent:     '#00AEEF',
+  accentDk:   '#0095cc',
+  accentBg:   'rgba(0,174,239,0.07)',
+  accentLine: 'rgba(0,174,239,0.18)',
+  border:     '#ebebeb',
+  statsB:     '#F4FAFE',
+} as const
 
-type Props = {
-  lang: string
-}
+// ─── Types ────────────────────────────────────────────────────
+type Lang = 'es' | 'en' | 'fr'
+type Props = { lang: string }
 
-
-
-  const content = {
+// ─── Content ─────────────────────────────────────────────────
+const content: Record<Lang, {
+  tag: string
+  title: string[]
+  titleAccent: string
+  subtitle: string
+  description: string
+  cta: string
+  ctaSub: string
+  trust: string[]
+}> = {
   es: {
-    title: 'Consultora tecnológica para empresas',
-    subtitle: 'Desarrollamos software a medida y soluciones de IA para automatizar tu negocio.',
-    description:
-      'Impulsamos el crecimiento de tu negocio con soluciones tecnológicas personalizadas que generan resultados medibles y sostenibles.',
+    tag: 'Consultora tecnológica · Fundada 2023',
+    title: ['Software a medida e'],
+    titleAccent: 'inteligencia artificial',
+    subtitle: 'para empresas que crecen.',
+    description: 'Impulsamos el crecimiento de tu negocio con soluciones tecnológicas personalizadas que generan resultados medibles y sostenibles.',
     cta: 'Solicitar consulta gratuita',
+    ctaSub: 'Ver servicios',
+    trust: ['Sin contratos largos', 'Equipo dedicado', 'Resultados medibles'],
   },
   en: {
-    title: 'Tech consulting for businesses',
-    subtitle: 'We build custom software and AI solutions to automate your business.',
-    description:
-      'We drive business growth through tailored technology that delivers measurable and sustainable results.',
+    tag: 'Tech consultancy · Founded 2023',
+    title: ['Custom software and'],
+    titleAccent: 'artificial intelligence',
+    subtitle: 'for growing businesses.',
+    description: 'We drive business growth through tailored technology solutions that deliver measurable and sustainable results.',
     cta: 'Request a free consultation',
+    ctaSub: 'View services',
+    trust: ['No long contracts', 'Dedicated team', 'Measurable results'],
   },
   fr: {
-    title: 'Consultation technologique pour entreprises',
-    subtitle:
-      'Nous développons des logiciels sur mesure et des solutions d’IA pour automatiser votre entreprise.',
-    description:
-      'Nous accélérons la croissance de votre entreprise grâce à des solutions technologiques personnalisées, durables et mesurables.',
+    tag: 'Consultance technologique · Fondée 2023',
+    title: ['Logiciels sur mesure et'],
+    titleAccent: "intelligence artificielle",
+    subtitle: 'pour les entreprises en croissance.',
+    description: "Nous accélérons la croissance de votre entreprise grâce à des solutions technologiques personnalisées, durables et mesurables.",
     cta: 'Demander une consultation gratuite',
+    ctaSub: 'Voir les services',
+    trust: ['Sans longs contrats', 'Équipe dédiée', 'Résultats mesurables'],
   },
 }
 
-const counterContent = {
-  es: {
-    title: 'Nuestro impacto en cifras',
-    subtitle: 'Resultados reales de un equipo especializado.',
-    counters: [
-      {
-        title: 'Clientes satisfechos',
-        subtitle: 'Empresas que confían en nuestro trabajo',
-        value: 50,  // ~5% de 12,000
-      },
-      {
-        title: 'Proyectos completados',
-        subtitle: 'Soluciones implementadas con éxito',
-        value: 17,   // ~5% de 340
-      },
-      {
-        title: 'Equipo técnico',
-        subtitle: 'Programadores dedicados',
-        value: 3,    // Valor exacto solicitado
-      },
-    ],
-  },
-  en: {
-    title: 'Our impact in numbers',
-    subtitle: 'Real outcomes from a specialized team.',
-    counters: [
-      {
-        title: 'Happy clients',
-        subtitle: 'Companies trusting our work',
-        value: 600,
-      },
-      {
-        title: 'Completed projects',
-        subtitle: 'Successfully deployed solutions',
-        value: 17,
-      },
-      {
-        title: 'Tech team',
-        subtitle: 'Dedicated developers',
-        value: 3,
-      },
-    ],
-  },
-  fr: {
-    title: 'Notre impact en chiffres',
-    subtitle: 'Résultats réels d’une équipe spécialisée.',
-    counters: [
-      {
-        title: 'Clients satisfaits',
-        subtitle: 'Entreprises qui nous font confiance',
-        value: 600,
-      },
-      {
-        title: 'Projets finalisés',
-        subtitle: 'Solutions déployées avec succès',
-        value: 17,
-      },
-      {
-        title: 'Équipe technique',
-        subtitle: 'Développeurs dédiés',
-        value: 3,
-      },
-    ],
-  },
-};
-
-
+const statsContent: Record<Lang, { value: number; suffix: string; label: string; sublabel: string }[]> = {
+  es: [
+    { value: 50,  suffix: '+', label: 'Clientes satisfechos',    sublabel: 'Empresas que confían en nosotros' },
+    { value: 17,  suffix: '+', label: 'Proyectos completados',   sublabel: 'Soluciones en producción'        },
+    { value: 3,   suffix: '',  label: 'Especialistas técnicos',  sublabel: 'Equipo dedicado y senior'        },
+  ],
+  en: [
+    { value: 50,  suffix: '+', label: 'Satisfied clients',       sublabel: 'Companies that trust us'         },
+    { value: 17,  suffix: '+', label: 'Completed projects',      sublabel: 'Production solutions'            },
+    { value: 3,   suffix: '',  label: 'Technical specialists',   sublabel: 'Dedicated senior team'           },
+  ],
+  fr: [
+    { value: 50,  suffix: '+', label: 'Clients satisfaits',      sublabel: 'Entreprises qui nous font confiance' },
+    { value: 17,  suffix: '+', label: 'Projets complétés',       sublabel: 'Solutions en production'             },
+    { value: 3,   suffix: '',  label: 'Spécialistes techniques',  sublabel: 'Équipe dédiée et senior'             },
+  ],
+}
 
 const icons = [
-  { Icon: SiJavascript, name: 'JavaScript' },
-  { Icon: SiTypescript, name: 'TypeScript' },
-  { Icon: SiPython, name: 'Python' },
-  { Icon: SiPhp, name: 'PHP' },
-  { Icon: SiRuby, name: 'Ruby' },
-  { Icon: SiGo, name: 'Go' },
-  { Icon: SiRust, name: 'Rust' },
-  { Icon: SiKotlin, name: 'Kotlin' },
-  { Icon: SiSwift, name: 'Swift' },
-  { Icon: SiHtml5, name: 'HTML5' },
-  { Icon: SiCss3, name: 'CSS3' },
-  { Icon: SiSass, name: 'Sass' },
-  { Icon: SiTailwindcss, name: 'Tailwind' },
-  { Icon: SiReact, name: 'React' },
-  { Icon: SiNextdotjs, name: 'Next.js' },
-  { Icon: SiAngular, name: 'Angular' },
-  { Icon: SiVuedotjs, name: 'Vue.js' },
-  { Icon: SiNodedotjs, name: 'Node.js' },
-  { Icon: SiExpress, name: 'Express' },
-  { Icon: SiNestjs, name: 'NestJS' },
-  { Icon: SiMongodb, name: 'MongoDB' },
-  { Icon: SiPostgresql, name: 'PostgreSQL' },
-  { Icon: SiMysql, name: 'MySQL' },
-  { Icon: SiRedis, name: 'Redis' },
-  { Icon: SiDocker, name: 'Docker' },
-  { Icon: SiKubernetes, name: 'Kubernetes' },
-  { Icon: SiGraphql, name: 'GraphQL' },
-  { Icon: SiPrisma, name: 'Prisma' },
-  { Icon: SiJest, name: 'Jest' },
-  { Icon: SiFlutter, name: 'Flutter' },
-  { Icon: SiDart, name: 'Dart' },
-  { Icon: SiGit, name: 'Git' },
-  { Icon: SiGithub, name: 'GitHub' },
-  { Icon: SiGitlab, name: 'GitLab' },
-  { Icon: SiLinux, name: 'Linux' },
-  { Icon: SiGooglecloud, name: 'Google Cloud' },
-  { Icon: SiFirebase, name: 'Firebase' },
-  { Icon: SiCplusplus, name: 'C++' },
-  { Icon: SiC, name: 'C' },
-  { Icon: SiDotnet, name: '.NET' },
-  { Icon: SiVite, name: 'Vite' },
-  { Icon: SiWebpack, name: 'Webpack' },
-  { Icon: SiEslint, name: 'ESLint' },
-  { Icon: SiPrettier, name: 'Prettier' },
-  { Icon: SiNpm, name: 'npm' },
-  { Icon: SiYarn, name: 'Yarn' },
-  { Icon: SiBabel, name: 'Babel' },
- 
-];
+  { Icon: SiJavascript,   name: 'JavaScript',   color: '#F7DF1E' },
+  { Icon: SiTypescript,   name: 'TypeScript',   color: '#3178C6' },
+  { Icon: SiPython,       name: 'Python',       color: '#3776AB' },
+  { Icon: SiReact,        name: 'React',        color: '#61DAFB' },
+  { Icon: SiNextdotjs,    name: 'Next.js',      color: '#000000' },
+  { Icon: SiNodedotjs,    name: 'Node.js',      color: '#339933' },
+  { Icon: SiDocker,       name: 'Docker',       color: '#2496ED' },
+  { Icon: SiKubernetes,   name: 'Kubernetes',   color: '#326CE5' },
+  { Icon: SiPostgresql,   name: 'PostgreSQL',   color: '#4169E1' },
+  { Icon: SiMongodb,      name: 'MongoDB',      color: '#47A248' },
+  { Icon: SiFlutter,      name: 'Flutter',      color: '#02569B' },
+  { Icon: SiGooglecloud,  name: 'GCP',          color: '#4285F4' },
+  { Icon: SiGraphql,      name: 'GraphQL',      color: '#E10098' },
+  { Icon: SiTailwindcss,  name: 'Tailwind',     color: '#06B6D4' },
+  { Icon: SiGo,           name: 'Go',           color: '#00ADD8' },
+  { Icon: SiRust,         name: 'Rust',         color: '#CE422B' },
+  { Icon: SiRedis,        name: 'Redis',        color: '#DC382D' },
+  { Icon: SiNestjs,       name: 'NestJS',       color: '#E0234E' },
+  { Icon: SiFirebase,     name: 'Firebase',     color: '#FFCA28' },
+  { Icon: SiGit,          name: 'Git',          color: '#F05032' },
+]
 
-
-
-
-export const Hero = ({ lang }: Props) => {
-  const t = content[lang as keyof typeof content] || content.en
-  const tcounter = counterContent[lang as keyof typeof counterContent] || counterContent.en
- /*     const theme = useTheme() */
-/*   const isMobile = useMediaQuery(theme.breakpoints.down('sm')) */
-   const ref = useRef(null)
-    const isInView = useInView(ref, { once: true })
-
-
-    useEffect(() => {
-  if (isInView && typeof window !== 'undefined') {
-    // Obtener datos del dispositivo y performance
-    const deviceData = getDeviceData();
-    const now = new Date();
-
-    // Datos extendidos específicos para Hero
-    const trackingData = {
-      // Datos básicos
-      ...deviceData,
-      section_name: 'HeroSection',
-      section_visibility: '100%',
-      timestamp: now.toISOString(),
-      event_id: crypto.randomUUID?.() ?? Math.random().toString(36).substring(2, 9),
-      
-      // Datos específicos de Hero
-      hero_content: {
-        title: document.querySelector('.hero-title')?.textContent?.trim(),
-        cta_text: document.querySelector('.hero-cta')?.textContent?.trim(),
-        has_video: !!document.querySelector('.hero video')
-      },
-      
-      // Datos de performance
-      performance: {
-        load_time: window.performance.timing.domContentLoadedEventEnd - window.performance.timing.navigationStart,
-        hero_loaded: now.getTime() - window.performance.timing.navigationStart
-      },
-      
-      // Contexto de visualización
-      viewport: {
-        width: window.innerWidth,
-        height: window.innerHeight,
-        pixel_ratio: window.devicePixelRatio
-      }
-    };
-
-    // Facebook Pixel (evento estándar + custom)
-    if (window.fbq) {
-      window.fbq('track', 'ViewContent', {
-        content_name: 'HeroSectionViewed',
-        content_category: 'Hero Section'
-      });
-      
-      window.fbq('trackCustom', 'HeroView', trackingData);
-    }
-
-    // Google Analytics 4 (gtag + ReactGA)
-    if (window.gtag) {
-      window.gtag('event', 'hero_view', trackingData);
-    }
-
-    if (typeof ReactGA !== 'undefined') {
-      ReactGA.event({
-        category: 'Hero',
-        action: 'HeroSectionViewed',
-        label: deviceData.deviceType,
-        value: Math.round(trackingData.performance.hero_loaded)
-      });
-    }
-
-    // Google Tag Manager
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: 'heroView',
-      ...trackingData
-    });
-
-    // Debug (solo en desarrollo)
-    if (process.env.NODE_ENV === 'development') {
-      console.group('🚀 Hero Section Tracking');
-      console.log('Basic View Event');
-      console.table(trackingData);
-      console.groupEnd();
-    }
-  }
-}, [isInView]);
-
-const handleClick = () => {
-  if (typeof window !== 'undefined') {
-    const userAgent = navigator.userAgent
-    const language = navigator.language || 'es'
-    const referrer = document.referrer || 'direct'
-    const eventoId = crypto.randomUUID?.() ?? Math.random().toString(36)
-
-    // Facebook Pixel
-    if (typeof window.fbq === 'function') {
-      window.fbq('trackCustom', 'ConsultoriaAgendada', {
-        plan: 'Premium',
-        servicio: 'Consultoría Estratégica',
-        canal: 'LandingPage',
-        ubicacion: 'HeroSection',
-        idioma: language,
-        referrer,
-        navegador: userAgent,
-        timestamp: new Date().toISOString(),
-        conversion_intent: true,
-        step: 'click_boton_agendar',
-        evento_unico_id: eventoId,
-      })
-      console.log('[Pixel] ConsultoriaAgendada enviada con metadata rica')
-    } else {
-      console.warn('[Pixel] fbq no está definido en window')
-    }
-
-    // Google Analytics 4
-    ReactGA.event({
-      category: 'Conversiones',
-      action: 'click_agendar_consultoria',
-      label: 'Consultoría Estratégica',
-      value: 1,
-      nonInteraction: false,
-    })
-
-    ReactGA.gtag('event', 'consultoria_agendada', {
-      plan: 'Premium',
-      servicio: 'Consultoría Estratégica',
-      canal: 'LandingPage',
-      ubicacion: 'HeroSection',
-      idioma: language,
-      referrer,
-      navegador: userAgent,
-      conversion_intent: true,
-      step: 'click_boton_agendar',
-      evento_unico_id: eventoId,
-    })
-
-    console.log('[GA4] consultoria_agendada enviada con metadata rica')
-
-    // Google Tag Manager
-    window.dataLayer = window.dataLayer || []
-    window.dataLayer.push({
-      event: 'ConsultoriaAgendada',
-      plan: 'Premium',
-      servicio: 'Consultoría Estratégica',
-      canal: 'LandingPage',
-      ubicacion: 'HeroSection',
-      idioma: language,
-      referrer,
-      navegador: userAgent,
-      conversion_intent: true,
-      step: 'click_boton_agendar',
-      evento_unico_id: eventoId,
-    })
-
-    console.log('[GTM] ConsultoriaAgendada enviada a dataLayer')
-  }
-}
-
-
-  return (
-      <Box
-      component={motion.section}
-      initial={{ opacity: 0, y: -20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
-      sx={{
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        px: 4,
-        pt: 10,
-        backgroundColor: '#FFFFFF',
-        color: '#2D3748',
-        textAlign: 'center',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-
-      
-      
-      
-    >
-           {/* SVG Background */}
-     {/*   <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          zIndex: 99,
-          pointerEvents: 'none',
-          opacity: 0.4, // controla visibilidad
-        }}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="100%"
-          height="100%"
-          preserveAspectRatio="xMidYMid slice"
-        >
-          <defs>
-            <pattern
-              id="a"
-              width="40"
-              height="40"
-              patternUnits="userSpaceOnUse"
-            >
-              <rect width="100%" height="100%" fill="#fff" />
-              <path
-                fill="none"
-                stroke="#ecc94b"
-                strokeLinecap="square"
-                strokeWidth=".5"
-                d="M20-5V5m0 30v10m20-30v10M0 15v10"
-              />
-              <path
-                fill="none"
-                stroke="#f44034"
-                strokeLinecap="square"
-                strokeWidth=".5"
-                d="M-5 40H5M-5 0H5m30 0h10M35 40h10M15 20h10"
-              />
-            </pattern>
-          </defs>
-          <rect width="800%" height="800%" fill="url(#a)" />
-        </svg>
-      </Box>  */}
-      {/* Glow Background */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '-100px',
-          right: '-120px',
-          width: 400,
-          height: 400,
-          background: '#005B96',
-          borderRadius: '50%',
-          filter: 'blur(180px)',
-          opacity: 0.1,
-          zIndex: 0,
-        }}
-      />
-
-      {/* Main Content */}
-      <Box sx={{ zIndex: 2, maxWidth: '800px' }}>
-   <Typography
-  variant="h1"
-  component={motion.h1}
-  initial={{ opacity: 0, y: 40 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ duration: 1, ease: 'easeOut', delay: 0.2 }}
-  sx={{
-    fontFamily: '"Poppins", "Montserrat", sans-serif',
-    fontSize: {
-      xs: '2.5rem',
-      sm: '3.5rem',
-      md: '4.5rem',
-      lg: '5rem',
-      xl: '5.5rem',
-    },
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '-0.02em',
-    background: 'linear-gradient(90deg, #2c3e50, #34495e)', // gris azulado serio y sobrio
-    backgroundSize: '200% 200%',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    textAlign: 'center',
-    lineHeight: 1.15,
-    mb: 3,
-
-    /* Sombras sutiles para profundidad y elegancia */
-    textShadow: `
-      0 1px 2px rgba(0, 0, 0, 0.25),
-      0 3px 6px rgba(0, 0, 0, 0.15)
-    `,
-
-    /* Animación suave para dar vida sin exagerar */
-    animation: 'gradientShift 8s ease-in-out infinite alternate',
-  }}
->
-  {t.title}
-
-  <style>
-    {`
-      @keyframes gradientShift {
-        0% {
-          background-position: 0% 50%;
-        }
-        100% {
-          background-position: 100% 50%;
-        }
-      }
-    `}
-  </style>
-</Typography>
-
-
-<Typography
-  variant="h5"
-  component={motion.p}
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.4 }}
-  sx={{
-    mt: 3,
-    color: '#00ADD8', // Azul Golang
-    fontWeight: 700, // bold
-    fontSize: { xs: '1.125rem', md: '1.375rem' },
-    lineHeight: 1.75,
-    maxWidth: { xs: '90%', md: '70%' },
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    fontFamily: '"Montserrat", sans-serif', // fuente para subtítulos
-    letterSpacing: '0.015em',
-    textAlign: 'center',
-
-    // Degradado azul con brillo sutil
-    background: 'linear-gradient(90deg, #00ADD8, #4FC3F7)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-
-    // Sombra ligera para contraste
-    textShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-
-    // Hover elegante
-    transition: 'text-shadow 0.3s ease',
-    '&:hover': {
-      textShadow: '0 2px 6px rgba(0, 173, 216, 0.25)',
-      cursor: 'default',
-    },
-  }}
->
-  {t.subtitle}
-</Typography>
-
-
-
-
-       <Typography
-  component={motion.p}
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.6 }}
-  sx={{
-    mt: 2,
-    color: '#000000', // negro
-    fontSize: { xs: '1rem', md: '1.2rem' },
-    maxWidth: '700px',
-    mx: 'auto',
-  }}
->
-  {t.description}
-</Typography>
-
-<Box
-  component={motion.div}
-  initial={{ opacity: 0, y: 20 }}
-  animate={{ opacity: 1, y: 0 }}
-  transition={{ delay: 0.8 }}
-  sx={{ mt: 5 }}
->
- <Link href="https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica" target="_blank" rel="noopener noreferrer">
-    <Button
-      onClick={handleClick}
-      variant="contained"
-      sx={{
-        bgcolor: '#00ADD8',       // Azul Golang
-        color: '#FFFFFF',
-        fontWeight: 'bold',
-        fontSize: '1rem',
-        px: 4,
-        py: 1.5,
-        borderRadius: '12px',
-        textTransform: 'none',
-        '&:hover': {
-          bgcolor: '#007B9E',     // Azul más oscuro para hover
-        },
-      }}
-    >
-      {t.cta || "Agendar reunión"}  {/* Texto personalizable */}
-    </Button>
-  </Link>
-</Box>
-
-      </Box>
-
-      {/* Icons Carousel */}
-    <Box
-  sx={{
-    mt: 10,
-    overflow: 'hidden',
-    width: '100%',
-    whiteSpace: 'nowrap',
-    zIndex: 1,
-  }}
->
-  <motion.div
-    animate={{ x: ['0%', '-50%'] }} // mueve solo la mitad (porque se duplica)
-    transition={{ repeat: Infinity, duration: 60, ease: 'linear' }}
-    style={{
-      display: 'inline-flex',
-      gap: '3rem',
-      fontSize: '2.5rem',
-      color: '#005B96',
-      alignItems: 'center',
-      width: 'max-content', // para que tome el ancho real del contenido
-    }}
-  >
-    {[...icons, ...icons].map(({ Icon, name }, idx) => (
-      <Box
-        key={idx}
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          minWidth: '5rem', // espacio fijo
-          color: '#6B7280',
-          userSelect: 'none',
-          fontSize: '0.875rem',
-          fontWeight: 500,
-          mt: 1,
-        }}
-      >
-        <Icon style={{ color: 'lightgray', fontSize: '3rem' }} />
-        <Typography
-          variant="caption"
-          sx={{
-            mt: 0.5,
-            color: 'lightgray',
-            fontFamily: '"Poppins", "Montserrat", sans-serif',
-          }}
-        >
-          {name}
-        </Typography>
-      </Box>
-    ))}
-  </motion.div>
-</Box>
-{/* Video Section - Hero Video Background */}
-<Box
-  sx={{
-    width: '100%',
-   maxWidth: {
-      xs: '90%',    // móviles
-      sm: '95%',    // tablets
-      md: '900px',  // laptops
-      lg: '1000px', // pantallas grandes
-      xl: '1100px', // pantallas extra grandes
-    },
-    borderRadius: '16px',
-    overflow: 'hidden',
-    mt: 8,
-     mb: {
-      xs: -11.5,  // para móviles
-      sm: -16,  // para tablets
-      md: -22,  // para laptops
-      lg: -22,  // para pantallas grandes
-    },
-
-    // Ajuste de sombra minimalista
- 
-  }}
->
-  <video
-    autoPlay
-    muted
-    loop
-    playsInline
-    style={{
-      width: '100%',
-      height: 'auto',
-      display: 'block', // Elimina espacio fantasma debajo del video
-      aspectRatio: '16/9' // Ajusta según la proporción real de tu video
-    }}
-  >
-    <source 
-      src="/videos/Datheons.mp4" 
-      type="video/webm" 
-    />
-    
-    {/* Fallback ultracompacto */}
-
-  </video>
-</Box>
-<Box
-      ref={ref}
-      sx={{
-        width: '100%',
-        py: { xs: 6, md: 10 },
-        px: 4,
-        backgroundColor: '#00ADD8',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        zIndex: 99,
-        mr: 10,
-        ml: 10,
-        mt: 6,
-        borderTopRightRadius: 25,
-        borderTopLeftRadius: 25,
-        
-      }}
-    >
-      {/* Título y subtítulo */}
-      <Box sx={{ mb: 6, textAlign: 'center', maxWidth: '800px' }}>
-        <Typography
-          variant="h4"
-          sx={{
-            color: '#FFFFFF',
-            fontWeight: 700,
-            fontSize: { xs: '1.75rem', md: '2.5rem' },
-            fontFamily: '"Space Grotesk", "Poppins", sans-serif',
-            mb: 1,
-          }}
-        >
-          {tcounter.title}
-        </Typography>
-        <Typography
-          variant="subtitle1"
-          sx={{
-            color: '#D1D5DB',
-            fontSize: { xs: '1rem', md: '1.125rem' },
-            fontFamily: '"Poppins", sans-serif',
-          }}
-        >
-          {tcounter.subtitle}
-        </Typography>
-      </Box>
-
-      {/* Contadores */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(3, 1fr)' },
-          gap: 6,
-          textAlign: 'center',
-          width: '100%',
-          maxWidth: '1100px',
-        }}
-      >
-        {tcounter.counters.map(({ title, subtitle, value }, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, y: 40 }}
-            animate={isInView ? { opacity: 1, y: 0 } : {}}
-            transition={{ duration: 1 + idx * 0.3, ease: 'easeOut' }}
-          >
-            <AnimatedNumber target={value} />
-            <Typography
-              variant="h6"
-              sx={{
-                color: '#FFFFFF',
-                fontWeight: 600,
-                fontFamily: '"Poppins", "Space Grotesk", sans-serif',
-                mt: 1,
-                fontSize: { xs: '1.125rem', md: '1.25rem' },
-              }}
-            >
-              {title}
-            </Typography>
-            <Typography
-              variant="body2"
-              sx={{
-                color: '#D1D5DB',
-                fontSize: { xs: '0.9rem', md: '1rem' },
-                fontFamily: '"Poppins", sans-serif',
-                mt: 0.5,
-              }}
-            >
-              {subtitle}
-            </Typography>
-          </motion.div>
-        ))}
-      </Box>
-    </Box>
-
-
-
-    </Box>
-  )
-}
-function AnimatedNumber({ target }: { target: number }) {
+// ─── Animated counter ─────────────────────────────────────────
+function AnimatedNumber({ target, suffix, inView }: { target: number; suffix: string; inView: boolean }) {
   const [value, setValue] = useState(0)
 
   useEffect(() => {
-    let current = 0
-    const duration = 2000
-    const increment = Math.ceil(target / (duration / 30))
+    if (!inView) return
+    let raf: number
+    const start = performance.now()
+    const duration = 1800
 
-    const interval = setInterval(() => {
-      current += increment
-      if (current >= target) {
-        current = target
-        clearInterval(interval)
-      }
-      setValue(current)
-    }, 30)
-
-    return () => clearInterval(interval)
-  }, [target])
+    const tick = (now: number) => {
+      const progress = Math.min((now - start) / duration, 1)
+      // easeOutExpo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress)
+      setValue(Math.round(eased * target))
+      if (progress < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [inView, target])
 
   return (
-    <Typography
-      variant="h2"
+    <Box component="span">
+      {value.toLocaleString()}{suffix}
+    </Box>
+  )
+}
+
+// ─── Main ─────────────────────────────────────────────────────
+export function Hero({ lang }: Props) {
+  const l = (lang as Lang) in content ? (lang as Lang) : 'es'
+  const t = content[l]
+  const stats = statsContent[l]
+
+  const sectionRef = useRef(null)
+  const statsRef   = useRef(null)
+  const isInView   = useInView(sectionRef, { once: true })
+  const statsInView = useInView(statsRef, { once: true, margin: '-80px' })
+
+  // ── Tracking ──
+  useEffect(() => {
+    if (!isInView || typeof window === 'undefined') return
+    const deviceData = getDeviceData()
+    const now = new Date()
+    const trackingData = {
+      ...deviceData,
+      section_name: 'HeroSection',
+      timestamp: now.toISOString(),
+      event_id: crypto.randomUUID?.() ?? Math.random().toString(36).substring(2, 9),
+      viewport: { width: window.innerWidth, height: window.innerHeight },
+    }
+    if (window.fbq) window.fbq('track', 'ViewContent', { content_name: 'HeroSectionViewed' })
+    if (window.gtag) window.gtag('event', 'hero_view', trackingData)
+    if (typeof ReactGA !== 'undefined') {
+      ReactGA.event({ category: 'Hero', action: 'HeroSectionViewed', label: deviceData.deviceType })
+    }
+    window.dataLayer = window.dataLayer || []
+    window.dataLayer.push({ event: 'heroView', ...trackingData })
+  }, [isInView])
+
+
+
+  // ── Stagger variants ──
+  const container = {
+    hidden: {},
+    show: { transition: { staggerChildren: 0.12, delayChildren: 0.1 } },
+  }
+  const item = {
+    hidden: { opacity: 0, y: 24 },
+    show:   { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+  }
+
+  return (
+    <Box
+      ref={sectionRef}
+      component="section"
       sx={{
-        fontWeight: 800,
-        color: '#FFFFFF',
-        fontSize: { xs: '2.5rem', md: '4rem' },
-        fontFamily: '"Space Grotesk", "Poppins", sans-serif',
-        lineHeight: 1.1,
+        position: 'relative',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        bgcolor: C.bg,
+        overflow: 'hidden',
+        pt: { xs: 10, md: 12 },
+        pb: { xs: 6, md: 8 },
       }}
     >
-      {value.toLocaleString()}+
-    </Typography>
+
+      {/* ── Grid background ── */}
+      <Box sx={{
+        position: 'absolute', inset: 0, zIndex: 0, pointerEvents: 'none',
+        backgroundImage: `
+          linear-gradient(${C.bgGrid} 1px, transparent 1px),
+          linear-gradient(90deg, ${C.bgGrid} 1px, transparent 1px)
+        `,
+        backgroundSize: '56px 56px',
+        maskImage: 'radial-gradient(ellipse 80% 60% at 50% 0%, black 40%, transparent 100%)',
+      }}/>
+
+      {/* ── Glow top-right ── */}
+      <Box sx={{
+        position: 'absolute', top: -80, right: -80,
+        width: 480, height: 480, borderRadius: '50%',
+        background: C.accent,
+        filter: 'blur(160px)',
+        opacity: 0.06, zIndex: 0, pointerEvents: 'none',
+      }}/>
+      {/* ── Glow bottom-left ── */}
+      <Box sx={{
+        position: 'absolute', bottom: 0, left: -60,
+        width: 320, height: 320, borderRadius: '50%',
+        background: C.accent,
+        filter: 'blur(130px)',
+        opacity: 0.04, zIndex: 0, pointerEvents: 'none',
+      }}/>
+
+      {/* ── Main content ── */}
+      <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
+        <Box
+          component={motion.div}
+          variants={container}
+          initial="hidden"
+          animate="show"
+          sx={{ textAlign: 'center', maxWidth: 840, mx: 'auto' }}
+        >
+
+          {/* Tag pill */}
+          <Box
+            component={motion.div}
+            variants={item}
+            sx={{
+              display: 'inline-flex', alignItems: 'center', gap: 0.75,
+              px: 1.75, py: 0.6,
+              border: `1px solid ${C.accentLine}`,
+              borderRadius: '100px',
+              bgcolor: C.accentBg,
+              mb: 3,
+            }}
+          >
+            <Box sx={{
+              width: 6, height: 6, borderRadius: '50%',
+              bgcolor: C.accent,
+              animation: 'pulse 2s ease-in-out infinite',
+              '@keyframes pulse': {
+                '0%,100%': { opacity: 1 },
+                '50%': { opacity: 0.3 },
+              },
+            }}/>
+            <Typography sx={{
+              fontSize: '0.75rem', fontWeight: 600, color: C.textMid,
+              letterSpacing: '0.04em',
+            }}>
+              {t.tag}
+            </Typography>
+          </Box>
+
+          {/* H1 */}
+          <Box component={motion.div} variants={item}>
+            <Typography
+              variant="h1"
+              sx={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 800,
+                fontSize: { xs: '2.4rem', sm: '3.2rem', md: '4rem', lg: '4.6rem' },
+                lineHeight: 1.1,
+                letterSpacing: '-0.025em',
+                color: C.text,
+                mb: 0,
+              }}
+            >
+              {t.title[0]}
+            </Typography>
+            <Typography
+              variant="h1"
+              sx={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 800,
+                fontSize: { xs: '2.4rem', sm: '3.2rem', md: '4rem', lg: '4.6rem' },
+                lineHeight: 1.1,
+                letterSpacing: '-0.025em',
+                color: C.accent,
+                display: 'block',
+              }}
+            >
+              {t.titleAccent}
+            </Typography>
+            <Typography
+              variant="h1"
+              sx={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 800,
+                fontSize: { xs: '2.4rem', sm: '3.2rem', md: '4rem', lg: '4.6rem' },
+                lineHeight: 1.1,
+                letterSpacing: '-0.025em',
+                color: C.text,
+                display: 'block',
+                mb: 3,
+              }}
+            >
+              {t.subtitle}
+            </Typography>
+          </Box>
+
+          {/* Description */}
+          <Box component={motion.div} variants={item}>
+            <Typography sx={{
+              fontSize: { xs: '1rem', md: '1.125rem' },
+              color: C.textMid,
+              maxWidth: 580, mx: 'auto',
+              lineHeight: 1.75,
+              fontWeight: 400,
+              mb: 4,
+            }}>
+              {t.description}
+            </Typography>
+          </Box>
+
+          {/* CTAs */}
+      
+          <HeroCTABlock lang={lang}/>
+
+          {/* Trust badges */}
+          <Box
+            component={motion.div}
+            variants={item}
+            sx={{
+              display: 'flex', justifyContent: 'center',
+              alignItems: 'center', gap: { xs: 1.5, md: 2.5 },
+              flexWrap: 'wrap',
+            }}
+          >
+            {t.trust.map((badge) => (
+              <Box key={badge} sx={{ display: 'flex', alignItems: 'center', gap: 0.6 }}>
+                <FiCheck size={13} color={C.accent} strokeWidth={2.5}/>
+                <Typography sx={{ fontSize: '0.8rem', color: C.textMute, fontWeight: 500 }}>
+                  {badge}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+
+        {/* ── Tech marquee ── */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9, duration: 0.8 }}
+          sx={{
+            mt: { xs: 6, md: 8 },
+            overflow: 'hidden',
+            position: 'relative',
+            // Fade edges
+            '&::before, &::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0, bottom: 0, width: 80, zIndex: 2,
+            },
+            '&::before': {
+              left: 0,
+              background: `linear-gradient(to right, ${C.bg}, transparent)`,
+            },
+            '&::after': {
+              right: 0,
+              background: `linear-gradient(to left, ${C.bg}, transparent)`,
+            },
+          }}
+        >
+          <motion.div
+            animate={{ x: ['0%', '-50%'] }}
+            transition={{ repeat: Infinity, duration: 45, ease: 'linear' }}
+            style={{ display: 'inline-flex', gap: '2.5rem', width: 'max-content' }}
+          >
+            {[...icons, ...icons].map(({ Icon, name, color }, idx) => (
+              <Box
+                key={idx}
+                sx={{
+                  display: 'flex', flexDirection: 'column',
+                  alignItems: 'center', gap: 0.5,
+                  px: 1, py: 0.5,
+                  minWidth: '64px',
+                  transition: 'all 0.2s ease',
+                  cursor: 'default',
+                  '&:hover .tech-icon': { opacity: 0.9, transform: 'translateY(-2px)' },
+                  '&:hover .tech-name': { color: C.textMid },
+                }}
+              >
+                <Box
+                  className="tech-icon"
+                  sx={{
+                    fontSize: '1.8rem',
+                    color: color,
+                    opacity: 0.45,
+                    transition: 'all 0.25s ease',
+                    display: 'flex',
+                  }}
+                >
+                  <Icon/>
+                </Box>
+                <Typography
+                  className="tech-name"
+                  variant="caption"
+                  sx={{
+                    fontSize: '0.65rem',
+                    color: C.border,
+                    fontWeight: 500,
+                    letterSpacing: '0.02em',
+                    transition: 'color 0.25s ease',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {name}
+                </Typography>
+              </Box>
+            ))}
+          </motion.div>
+        </Box>
+
+        {/* ── Stats bar ── */}
+        <Box
+          ref={statsRef}
+          component={motion.div}
+          initial={{ opacity: 0, y: 24 }}
+          animate={statsInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+          sx={{
+            mt: { xs: 5, md: 6 },
+            p: { xs: 3, md: 4 },
+            borderRadius: '20px',
+            bgcolor: C.statsB,
+            border: `1px solid ${C.border}`,
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, 1fr)' },
+            gap: { xs: 3, sm: 0 },
+          }}
+        >
+          {stats.map(({ value, suffix, label, sublabel }, i) => (
+            <Box
+              key={i}
+              sx={{
+                textAlign: 'center',
+                px: 3,
+                borderRight: {
+                  sm: i < stats.length - 1
+                    ? `1px solid ${C.border}`
+                    : 'none',
+                },
+              }}
+            >
+              <Typography sx={{
+                fontFamily: 'Poppins, sans-serif',
+                fontWeight: 800,
+                fontSize: { xs: '2.4rem', md: '3rem' },
+                lineHeight: 1,
+                color: C.text,
+                letterSpacing: '-0.03em',
+                mb: 0.5,
+              }}>
+                <AnimatedNumber target={value} suffix={suffix} inView={statsInView}/>
+              </Typography>
+              <Typography sx={{
+                fontWeight: 700, fontSize: '0.85rem',
+                color: C.textMid, mb: 0.25,
+              }}>
+                {label}
+              </Typography>
+              <Typography sx={{
+                fontSize: '0.75rem', color: C.textMute,
+              }}>
+                {sublabel}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      </Container>
+    </Box>
   )
 }

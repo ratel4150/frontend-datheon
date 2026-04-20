@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/CookieConsentBanner.tsx
 // src/components/landing/ClientScripts.tsx
 'use client'
 
@@ -50,7 +51,7 @@ export default function CookieConsentBanner() {
         }
 
         // Zoho SalesIQ Widget (Siempre se carga)
-        const script = document.createElement('script')
+      /*   const script = document.createElement('script')
         script.type = 'text/javascript'
         script.id = 'zsiqscript'
         script.defer = true
@@ -61,7 +62,7 @@ export default function CookieConsentBanner() {
             values:{}, ready:function(){}
           };
         `
-        document.body.appendChild(script)
+        document.body.appendChild(script) */
 
         const secondScript = document.createElement('script')
         secondScript.src = 'https://salesiq.zoho.com/widget'
@@ -69,7 +70,7 @@ export default function CookieConsentBanner() {
         document.body.appendChild(secondScript)
 
         return () => {
-          document.body.removeChild(script)
+     /*      document.body.removeChild(script) */
           document.body.removeChild(secondScript)
         }
       } catch {
