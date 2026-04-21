@@ -47,14 +47,14 @@ const TEAM: Member[] = [
       en: 'Specialist in data pipelines, predictive models and real-time analytics dashboards.',
       fr: 'Spécialiste en pipelines de données, modèles prédictifs et tableaux de bord analytiques.',
     },
-    avatar: 'https://media.licdn.com/dms/image/v2/D4E03AQHd9kB8Ua8LYQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1731383645850?e=1756339200&v=beta&t=D4LkNwSC5f-XYYOVJETmufF0Wg2xefwO_3oRdEecv_A',
+    avatar: 'https://media.licdn.com/dms/image/v2/D4E03AQHd9kB8Ua8LYQ/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1731383645818?e=1778112000&v=beta&t=Qi7O64UxR6UIeFuGBVJ60ndB3WRmdcGtxUn2kNANcSA',
     skills: [
       { icon: <SiPython size={13}/>, name: 'Python' },
       { icon: <SiPostgresql size={13}/>, name: 'PostgreSQL' },
       { icon: <SiDocker size={13}/>, name: 'Docker' },
     ],
-    linkedin: 'https://linkedin.com',
-    github: 'https://github.com',
+    linkedin: 'https://www.linkedin.com/in/angelclavellina/',
+    github: 'https://github.com/RiemanNClav',
   },
   {
     name: 'Arturo Chavez',
@@ -65,15 +65,33 @@ const TEAM: Member[] = [
       en: 'Software architect experienced in SaaS, REST/GraphQL APIs and scalable cloud infrastructure.',
       fr: 'Architecte logiciel expérimenté en SaaS, APIs REST/GraphQL et infrastructure cloud évolutive.',
     },
-    avatar: 'https://media.licdn.com/dms/image/v2/D4E03AQHo5dvV_WeVDQ/profile-displayphoto-shrink_800_800/profile-displayphoto-shrink_800_800/0/1704060418269?e=1756339200&v=beta&t=RfzPI_QdFeMT2U7acC1B5cfktdybnI7buc0Eii-TrAg',
+    avatar: 'https://media.licdn.com/dms/image/v2/D4E03AQHOClLZQOVfxQ/profile-displayphoto-crop_800_800/B4EZ2tqC_XG0AI-/0/1776734977680?e=1778112000&v=beta&t=ISUhyWWVZ5RSYeckw02F9hWCkGJ-ws3ywIj6K3Ub3A0',
     skills: [
       { icon: <SiNextdotjs size={13}/>, name: 'Next.js' },
       { icon: <SiNodedotjs size={13}/>, name: 'Node.js' },
       { icon: <SiGo size={13}/>, name: 'Go' },
     ],
-    linkedin: 'https://linkedin.com',
-    github: 'https://github.com',
+    linkedin: 'https://www.linkedin.com/in/arturo-chavez-53a57a236/',
+    github: 'https://github.com/ratel4150',
   },
+  {
+  name: 'Ana Romero',
+  role: 'Sales Manager',
+  color: '#F9C7C2', // pastel pink
+  bio: {
+    es: 'Gerente de ventas con más de 10 años de experiencia en estrategias comerciales B2B, gestión de equipos de alto rendimiento y crecimiento de ingresos en sectores tecnológicos.',
+    en: 'Sales manager with over 10 years of experience in B2B commercial strategies, high-performance team management, and revenue growth in technology sectors.',
+    fr: 'Responsable des ventes avec plus de 10 ans d’expérience dans les stratégies commerciales B2B, la gestion d’équipes à haute performance et la croissance des revenus dans les secteurs technologiques.',
+  },
+  avatar: 'https://media.licdn.com/dms/image/v2/D4E03AQGXS0qk_zqsrw/profile-displayphoto-crop_800_800/B4EZzE0s76JcAI-/0/1772828677877?e=1778112000&v=beta&t=wNIXwDKZDWloZ9kNUEjIvhdJCjx5lDDfJAuYXOWYQks',
+  skills: [
+    { icon: '📊', name: 'CRM (Salesforce/HubSpot)' },
+    { icon: '🤝', name: 'Negociación' },
+    { icon: '📈', name: 'Generación de leads' },
+  ],
+  linkedin: 'https://www.linkedin.com/in/ana-romero-499856368/',
+  github: 'https://github.com/mariafernandez',
+},
 ]
 
 // ─── Member Card ─────────────────────────────────────────────
@@ -390,29 +408,30 @@ const handleCTA = useCallback(() => {
         </Box>
 
         {/* Cards — centradas cuando hay pocos miembros */}
-        <Box
-          ref={ref}
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: '1fr',
-              sm: 'repeat(2, minmax(0, 360px))',
-            },
-            gap: { xs: 2.5, md: 3 },
-            justifyContent: 'center',
-            mb: { xs: 5, md: 6 },
-          }}
-        >
-          {TEAM.map((member, i) => (
-            <MemberCard
-              key={member.name}
-              member={member}
-              index={i}
-              isInView={isInView}
-              lang={l}
-            />
-          ))}
-        </Box>
+      <Box
+  ref={ref}
+  sx={{
+    display: 'grid',
+    gridTemplateColumns: {
+      xs: '1fr',           // 1 column on mobile
+      sm: 'repeat(2, minmax(0, 360px))', // 2 columns on tablets
+      md: 'repeat(3, minmax(0, 360px))', // 3 columns on desktop
+    },
+    gap: { xs: 2.5, md: 3 },
+    justifyContent: 'center',
+    mb: { xs: 5, md: 6 },
+  }}
+>
+  {TEAM.map((member, i) => (
+    <MemberCard
+      key={member.name}
+      member={member}
+      index={i}
+      isInView={isInView}
+      lang={l}
+    />
+  ))}
+</Box>
 
         {/* Hiring nudge */}
         <Box
