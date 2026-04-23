@@ -1,12 +1,12 @@
-// File: frontend-datheon/components/landing/OurSrvices.tsx
+// File: frontend-datheon/components/landing/OurServices.tsx
 'use client'
 
 import { Box, Typography, Button, Container, Chip, alpha } from '@mui/material'
 import {
   FiCheck, FiCalendar, FiArrowRight,
-  FiCpu, FiZap,  FiLayers,
+  FiCpu, FiZap, FiLayers,
   FiSmartphone, FiCloud, FiDatabase, FiWifi,
-  FiBox, 
+  FiBox,
 } from 'react-icons/fi'
 import ReactGA from 'react-ga4'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -39,6 +39,7 @@ interface Service {
   description: string
   features: Feature[]
   badge?: string
+  calendlyUrl: string
 }
 
 // ─── Services data ────────────────────────────────────────────
@@ -51,6 +52,7 @@ const servicesData: Record<Lang, Service[]> = {
       title: 'AI SaaS & Agentes Autónomos',
       description: 'Construimos productos SaaS potenciados por IA y agentes que ejecutan tareas completas sin intervención humana.',
       badge: 'Alta demanda',
+      calendlyUrl: 'https://calendly.com/team_datheon/ai-saas-agentes-autonomos',
       features: [
         { title: 'Agentes IA con LangGraph / CrewAI', subtitle: 'Agentes multi-step que razonan, planifican y actúan en sistemas reales' },
         { title: 'RAG + Bases de conocimiento', subtitle: 'Asistentes entrenados sobre tus documentos con pgvector / Pinecone' },
@@ -66,6 +68,7 @@ const servicesData: Record<Lang, Service[]> = {
       title: 'Automatización & Lead Systems',
       description: 'Sistemas que capturan, califican y convierten leads de forma automática, más flujos RPA que eliminan trabajo manual.',
       badge: 'Más solicitado',
+      calendlyUrl: 'https://calendly.com/team_datheon/automatizacion-lead-systems-clone',
       features: [
         { title: 'CRM + Lead scoring con IA', subtitle: 'Calificación automática de prospectos con ML y notificaciones en tiempo real' },
         { title: 'Automatización con n8n / Make', subtitle: 'Flujos sin código que conectan CRM, email, WhatsApp y herramientas internas' },
@@ -80,6 +83,7 @@ const servicesData: Record<Lang, Service[]> = {
       color: '#D97706',
       title: 'SaaS / Web Apps & E-commerce',
       description: 'Aplicaciones web fullstack de alto rendimiento, desde MVPs hasta plataformas con millones de usuarios.',
+      calendlyUrl: 'https://calendly.com/team_datheon/saas-web-apps-e-commerce-clone',
       features: [
         { title: 'Fullstack con Next.js + Node / Django', subtitle: 'Arquitectura serverless con SSR, API routes y bases de datos escalables' },
         { title: 'E-commerce a medida', subtitle: 'Tiendas con carrito, pagos (Stripe/MercadoPago), inventario y panel admin' },
@@ -94,6 +98,7 @@ const servicesData: Record<Lang, Service[]> = {
       color: '#DB2777',
       title: 'Mobile Apps & Backend',
       description: 'Apps móviles nativas y multiplataforma conectadas a backends robustos y escalables.',
+      calendlyUrl: 'https://calendly.com/team_datheon/mobile-apps-backend-clone',
       features: [
         { title: 'Flutter (iOS + Android)', subtitle: 'Una sola base de código con rendimiento nativo y offline sync' },
         { title: 'Swift / Kotlin nativo', subtitle: 'Apps de alta performance para casos que demandan integración profunda con el SO' },
@@ -108,6 +113,7 @@ const servicesData: Record<Lang, Service[]> = {
       color: '#2563EB',
       title: 'Cloud, DevOps & Infraestructura',
       description: 'Infraestructura cloud escalable, segura y gestionada como código para que tu producto nunca se caiga.',
+      calendlyUrl: 'https://calendly.com/team_datheon/cloud-devops-infraestructura-clone',
       features: [
         { title: 'AWS / GCP con Terraform', subtitle: 'Infraestructura como código: VPC, ECS, RDS, Lambda, auto-scaling' },
         { title: 'Kubernetes & Docker', subtitle: 'Orquestación de contenedores con Helm, namespaces y HPA' },
@@ -122,6 +128,7 @@ const servicesData: Record<Lang, Service[]> = {
       color: '#0891B2',
       title: 'Data, Analytics & AI Systems',
       description: 'Arquitecturas de datos que convierten información cruda en decisiones de negocio en tiempo real.',
+      calendlyUrl: 'https://calendly.com/team_datheon/data-analytics-ai-systems-clone',
       features: [
         { title: 'Data pipelines (ETL/ELT)', subtitle: 'Airflow, dbt y Spark para mover y transformar datos a escala' },
         { title: 'Bases de datos vectoriales', subtitle: 'pgvector, Qdrant y Weaviate para búsqueda semántica y RAG' },
@@ -136,6 +143,7 @@ const servicesData: Record<Lang, Service[]> = {
       color: '#7C3AED',
       title: 'IoT: Hardware + Software + SaaS',
       description: 'Conectamos dispositivos físicos al mundo digital: desde el firmware hasta el dashboard en la nube.',
+      calendlyUrl: 'https://calendly.com/team_datheon/iot-hardware-software-saas-clone',
       features: [
         { title: 'Firmware & protocolos IoT', subtitle: 'MQTT, CoAP, Modbus sobre ESP32, Raspberry Pi y PLCs industriales' },
         { title: 'Gateways y edge computing', subtitle: 'Procesamiento local para reducir latencia y operar sin conexión estable' },
@@ -150,6 +158,7 @@ const servicesData: Record<Lang, Service[]> = {
       color: '#059669',
       title: 'Odoo ERP & Transformación Digital',
       description: 'Implementamos, personalizamos y conectamos Odoo con el resto de tu stack tecnológico.',
+      calendlyUrl: 'https://calendly.com/d/ctxb-55y-krt',
       features: [
         { title: 'Implementación Odoo completa', subtitle: 'Ventas, compras, inventario, contabilidad y RRHH configurados a tu proceso' },
         { title: 'Módulos custom (Python/XML)', subtitle: 'Funcionalidades específicas de tu negocio que Odoo estándar no cubre' },
@@ -165,6 +174,7 @@ const servicesData: Record<Lang, Service[]> = {
       title: 'AI SaaS & Autonomous Agents',
       description: 'We build AI-powered SaaS products and agents that execute complete tasks without human intervention.',
       badge: 'High demand',
+      calendlyUrl: 'https://calendly.com/team_datheon/ai-saas-agentes-autonomos',
       features: [
         { title: 'AI Agents with LangGraph / CrewAI', subtitle: 'Multi-step agents that reason, plan and act on real systems' },
         { title: 'RAG + Knowledge bases', subtitle: 'Assistants trained on your documents with pgvector / Pinecone' },
@@ -178,6 +188,7 @@ const servicesData: Record<Lang, Service[]> = {
       title: 'Automation & Lead Systems',
       description: 'Systems that automatically capture, qualify and convert leads, plus RPA flows that eliminate manual work.',
       badge: 'Most requested',
+      calendlyUrl: 'https://calendly.com/team_datheon/automatizacion-lead-systems-clone',
       features: [
         { title: 'CRM + AI lead scoring', subtitle: 'Automatic prospect qualification with ML and real-time notifications' },
         { title: 'Automation with n8n / Make', subtitle: 'No-code flows connecting CRM, email, WhatsApp and internal tools' },
@@ -190,6 +201,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '03', icon: <FiLayers size={20}/>, color: '#D97706',
       title: 'SaaS / Web Apps & E-commerce',
       description: 'High-performance fullstack web applications, from MVPs to platforms serving millions of users.',
+      calendlyUrl: 'https://calendly.com/team_datheon/saas-web-apps-e-commerce-clone',
       features: [
         { title: 'Fullstack with Next.js + Node / Django', subtitle: 'Serverless architecture with SSR, API routes and scalable databases' },
         { title: 'Custom e-commerce', subtitle: 'Stores with cart, payments (Stripe/MercadoPago), inventory and admin panel' },
@@ -202,6 +214,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '04', icon: <FiSmartphone size={20}/>, color: '#DB2777',
       title: 'Mobile Apps & Backend',
       description: 'Native and cross-platform mobile apps connected to robust and scalable backends.',
+      calendlyUrl: 'https://calendly.com/team_datheon/mobile-apps-backend-clone',
       features: [
         { title: 'Flutter (iOS + Android)', subtitle: 'Single codebase with native performance and offline sync' },
         { title: 'Native Swift / Kotlin', subtitle: 'High-performance apps for cases requiring deep OS integration' },
@@ -214,6 +227,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '05', icon: <FiCloud size={20}/>, color: '#2563EB',
       title: 'Cloud, DevOps & Infrastructure',
       description: 'Scalable, secure cloud infrastructure managed as code so your product never goes down.',
+      calendlyUrl: 'https://calendly.com/team_datheon/cloud-devops-infraestructura-clone',
       features: [
         { title: 'AWS / GCP with Terraform', subtitle: 'Infrastructure as code: VPC, ECS, RDS, Lambda, auto-scaling' },
         { title: 'Kubernetes & Docker', subtitle: 'Container orchestration with Helm, namespaces and HPA' },
@@ -226,6 +240,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '06', icon: <FiDatabase size={20}/>, color: '#0891B2',
       title: 'Data, Analytics & AI Systems',
       description: 'Data architectures that turn raw information into business decisions in real time.',
+      calendlyUrl: 'https://calendly.com/team_datheon/data-analytics-ai-systems-clone',
       features: [
         { title: 'Data pipelines (ETL/ELT)', subtitle: 'Airflow, dbt and Spark to move and transform data at scale' },
         { title: 'Vector databases', subtitle: 'pgvector, Qdrant and Weaviate for semantic search and RAG' },
@@ -238,6 +253,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '07', icon: <FiWifi size={20}/>, color: '#7C3AED',
       title: 'IoT: Hardware + Software + SaaS',
       description: 'We connect physical devices to the digital world: from firmware to cloud dashboard.',
+      calendlyUrl: 'https://calendly.com/team_datheon/iot-hardware-software-saas-clone',
       features: [
         { title: 'Firmware & IoT protocols', subtitle: 'MQTT, CoAP, Modbus on ESP32, Raspberry Pi and industrial PLCs' },
         { title: 'Gateways & edge computing', subtitle: 'Local processing to reduce latency and operate without stable connection' },
@@ -250,6 +266,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '08', icon: <FiBox size={20}/>, color: '#059669',
       title: 'Odoo ERP & Digital Transformation',
       description: 'We implement, customize and connect Odoo with the rest of your technology stack.',
+      calendlyUrl: 'https://calendly.com/d/ctxb-55y-krt',
       features: [
         { title: 'Full Odoo implementation', subtitle: 'Sales, purchases, inventory, accounting and HR configured to your process' },
         { title: 'Custom modules (Python/XML)', subtitle: 'Business-specific features that standard Odoo does not cover' },
@@ -265,6 +282,7 @@ const servicesData: Record<Lang, Service[]> = {
       title: 'IA SaaS & Agents Autonomes',
       description: 'Nous construisons des produits SaaS alimentés par IA et des agents qui exécutent des tâches complètes sans intervention humaine.',
       badge: 'Forte demande',
+      calendlyUrl: 'https://calendly.com/team_datheon/ai-saas-agentes-autonomos',
       features: [
         { title: 'Agents IA avec LangGraph / CrewAI', subtitle: 'Agents multi-étapes qui raisonnent, planifient et agissent sur des systèmes réels' },
         { title: 'RAG + Bases de connaissances', subtitle: 'Assistants entraînés sur vos documents avec pgvector / Pinecone' },
@@ -278,6 +296,7 @@ const servicesData: Record<Lang, Service[]> = {
       title: 'Automatisation & Systèmes de Leads',
       description: 'Systèmes qui capturent, qualifient et convertissent les leads automatiquement, plus des flux RPA qui éliminent le travail manuel.',
       badge: 'Plus demandé',
+      calendlyUrl: 'https://calendly.com/team_datheon/automatizacion-lead-systems-clone',
       features: [
         { title: 'CRM + scoring de leads avec IA', subtitle: 'Qualification automatique de prospects avec ML et notifications en temps réel' },
         { title: 'Automatisation avec n8n / Make', subtitle: 'Flux sans code connectant CRM, email, WhatsApp et outils internes' },
@@ -290,6 +309,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '03', icon: <FiLayers size={20}/>, color: '#D97706',
       title: 'SaaS / Web Apps & E-commerce',
       description: "Applications web fullstack haute performance, du MVP aux plateformes avec des millions d'utilisateurs.",
+      calendlyUrl: 'https://calendly.com/team_datheon/saas-web-apps-e-commerce-clone',
       features: [
         { title: 'Fullstack avec Next.js + Node / Django', subtitle: 'Architecture serverless avec SSR, API routes et bases de données scalables' },
         { title: 'E-commerce sur mesure', subtitle: 'Boutiques avec panier, paiements (Stripe/MercadoPago), inventaire et panel admin' },
@@ -302,6 +322,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '04', icon: <FiSmartphone size={20}/>, color: '#DB2777',
       title: 'Applications Mobiles & Backend',
       description: 'Applications mobiles natives et multiplateformes connectées à des backends robustes et évolutifs.',
+      calendlyUrl: 'https://calendly.com/team_datheon/mobile-apps-backend-clone',
       features: [
         { title: 'Flutter (iOS + Android)', subtitle: 'Une seule base de code avec des performances natives et sync hors ligne' },
         { title: 'Swift / Kotlin natif', subtitle: "Applications haute performance pour les cas nécessitant une intégration profonde avec l'OS" },
@@ -314,6 +335,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '05', icon: <FiCloud size={20}/>, color: '#2563EB',
       title: 'Cloud, DevOps & Infrastructure',
       description: "Infrastructure cloud évolutive et sécurisée gérée en code pour que votre produit ne tombe jamais.",
+      calendlyUrl: 'https://calendly.com/team_datheon/cloud-devops-infraestructura-clone',
       features: [
         { title: 'AWS / GCP avec Terraform', subtitle: 'Infrastructure as code : VPC, ECS, RDS, Lambda, auto-scaling' },
         { title: 'Kubernetes & Docker', subtitle: 'Orchestration de conteneurs avec Helm, namespaces et HPA' },
@@ -326,6 +348,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '06', icon: <FiDatabase size={20}/>, color: '#0891B2',
       title: 'Data, Analytics & Systèmes IA',
       description: 'Architectures de données qui transforment les informations brutes en décisions métier en temps réel.',
+      calendlyUrl: 'https://calendly.com/team_datheon/data-analytics-ai-systems-clone',
       features: [
         { title: 'Pipelines de données (ETL/ELT)', subtitle: 'Airflow, dbt et Spark pour déplacer et transformer les données à grande échelle' },
         { title: 'Bases de données vectorielles', subtitle: 'pgvector, Qdrant et Weaviate pour la recherche sémantique et RAG' },
@@ -338,6 +361,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '07', icon: <FiWifi size={20}/>, color: '#7C3AED',
       title: 'IoT : Hardware + Software + SaaS',
       description: 'Nous connectons des appareils physiques au monde numérique : du firmware au tableau de bord cloud.',
+      calendlyUrl: 'https://calendly.com/team_datheon/iot-hardware-software-saas-clone',
       features: [
         { title: 'Firmware & protocoles IoT', subtitle: 'MQTT, CoAP, Modbus sur ESP32, Raspberry Pi et PLCs industriels' },
         { title: 'Passerelles & edge computing', subtitle: 'Traitement local pour réduire la latence et opérer sans connexion stable' },
@@ -350,6 +374,7 @@ const servicesData: Record<Lang, Service[]> = {
       num: '08', icon: <FiBox size={20}/>, color: '#059669',
       title: 'Odoo ERP & Transformation Digitale',
       description: 'Nous implémentons, personnalisons et connectons Odoo avec le reste de votre stack technologique.',
+      calendlyUrl: 'https://calendly.com/d/ctxb-55y-krt',
       features: [
         { title: 'Implémentation Odoo complète', subtitle: 'Ventes, achats, inventaire, comptabilité et RH configurés à votre processus' },
         { title: 'Modules custom (Python/XML)', subtitle: "Fonctionnalités spécifiques à votre entreprise que l'Odoo standard ne couvre pas" },
@@ -410,14 +435,14 @@ function ServiceCard({ service, lang, index }: { service: Service; lang: string;
       const left = window.screenX + (window.innerWidth - w) / 2
       const top  = window.screenY + (window.innerHeight - h) / 2
       const win  = window.open(
-        'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
+        service.calendlyUrl,
         'Calendly', `width=${w},height=${h},left=${left},top=${top}`
       )
       if (win) win.focus()
       else alert(tx('popup', lang))
     }
     setTimeout(() => setLoading(false), 1500)
-  }, [loading, service.title, lang])
+  }, [loading, service, lang])
 
   return (
     <Box

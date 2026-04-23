@@ -1,0 +1,10 @@
+ai-solution-architecture
+digital-transformation-systems
+ai-strategy-consulting
+system-design-engineering
+workflow-reengineering
+business-process-optimization
+enterprise-architecture-design
+solution-architecture-planning
+operational-efficiency-systems
+business-systems-design

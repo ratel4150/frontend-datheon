@@ -41,31 +41,31 @@ interface Testimonial {
 const TESTIMONIALS: Testimonial[] = [
   {
     id: 1, name: 'María López', role: 'CEO', company: 'Acme Corp',
-    avatar: 'https://i.pravatar.cc/150?img=3',
+    avatar: 'https://images.pexels.com/photos/7077367/pexels-photo-7077367.jpeg',
     quote: 'Trabajar con Datheón transformó completamente nuestra productividad. Su enfoque ágil nos permitió lanzar al mercado en la mitad del tiempo estimado.',
     rating: 5, tag: 'SaaS Development', service: 'Web App',
   },
   {
     id: 2, name: 'John Doe', role: 'CTO', company: 'Tech Innovators',
-    avatar: 'https://i.pravatar.cc/150?img=4',
+    avatar: 'https://images.pexels.com/photos/7562076/pexels-photo-7562076.jpeg',
     quote: 'La calidad del desarrollo es sobresaliente. Integraron nuestras APIs legacy sin fricciones y la solución de IA superó todas nuestras expectativas técnicas.',
     rating: 5, tag: 'AI Integration', service: 'AI SaaS',
   },
   {
     id: 3, name: 'Raj Patel', role: 'Director de TI', company: 'Global Bank',
-    avatar: 'https://i.pravatar.cc/150?img=55',
+    avatar: 'https://images.pexels.com/photos/25851303/pexels-photo-25851303.jpeg',
     quote: 'Implementaron un sistema de ciberseguridad que redujo nuestros incidentes en un 90%. Cumplen todos los estándares regulatorios financieros.',
     rating: 5, tag: 'Cybersecurity', service: 'Cloud & DevOps',
   },
   {
     id: 4, name: 'Sophie Zhang', role: 'VP Marketing', company: 'EcoGoods',
-    avatar: 'https://i.pravatar.cc/150?img=23',
+    avatar: 'https://images.pexels.com/photos/15547481/pexels-photo-15547481.jpeg',
     quote: 'Su plataforma de análisis con IA aumentó nuestra tasa de conversión en un 35%. Los dashboards personalizados son increíblemente intuitivos.',
     rating: 5, tag: 'Analytics', service: 'Data & AI',
   },
   {
     id: 5, name: 'Carlos Mendoza', role: 'COO', company: 'LogiChain',
-    avatar: 'https://i.pravatar.cc/150?img=41',
+    avatar: 'https://images.pexels.com/photos/14564834/pexels-photo-14564834.jpeg',
     quote: 'Automatizaron el 70% de nuestra cadena de suministro con IoT. La solución de tracking en tiempo real superó ampliamente el ROI esperado.',
     rating: 5, tag: 'IoT & Automation', service: 'IoT SaaS',
   },
@@ -249,7 +249,7 @@ export default function Testimonials({ lang }: Props) {
       const w = 800, h = 700
 
       const win = window.open(
-        'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
+        'https://calendly.com/team_datheon/consulta-gratuita',
         'Calendly',
         `width=${w},height=${h},left=${
           window.screenX + (window.innerWidth - w) / 2

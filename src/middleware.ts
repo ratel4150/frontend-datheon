@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/middleware.ts
 import { NextRequest, NextResponse } from 'next/server'
 
 const locales = ['es', 'en', 'fr']

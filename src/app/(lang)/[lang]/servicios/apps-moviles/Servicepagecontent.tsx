@@ -1,0 +1,345 @@
+// File: frontend-datheon/src/app/(lang)/[lang]/servicios/apps-moviles/Servicepagecontent.tsx
+'use client'
+
+import { ServicePageTemplate } from '../Servicepagetemplate'
+import type { PageContent } from '../Servicepagetemplate'
+
+type Lang = 'es' | 'en' | 'fr'
+
+const content: Record<Lang, Omit<PageContent, 'lang' | 'slug' | 'icon'>> = {
+  es: {
+    badge: 'Servicio · Apps Móviles',
+    breadcrumb: { home: 'Inicio', services: 'Servicios', current: 'Apps Móviles' },
+    hero: {
+      title: 'Tu app en iOS y Android',
+      titleAccent: 'con un solo código.',
+      subtitle: 'Desarrollamos aplicaciones móviles con Flutter — una sola base de código para iOS y Android. Rápidas, nativas en apariencia y conectadas a tu backend.',
+      cta: 'Agendar reunión gratuita',
+      ctaSub: 'Ver precios',
+    },
+    social: '5 apps lanzadas en producción este año',
+    includes: {
+      title: '¿Qué incluye?',
+      items: [
+        { icon: '🎨', title: 'Diseño UI/UX móvil', desc: 'Interfaces pensadas para touch, con componentes nativos de cada plataforma y flujos optimizados.' },
+        { icon: '📱', title: 'Flutter cross-platform', desc: 'Un solo código para iOS y Android. Sin comprometer rendimiento ni experiencia de usuario.' },
+        { icon: '🔔', title: 'Push notifications', desc: 'Notificaciones push con Firebase Cloud Messaging para iOS y Android desde el día uno.' },
+        { icon: '🔌', title: 'Integración con tu backend', desc: 'Conectamos la app con tu API REST existente o construimos el backend desde cero con FastAPI.' },
+        { icon: '📍', title: 'Funciones nativas', desc: 'GPS, cámara, biometría, pagos in-app, Bluetooth y más funciones del dispositivo.' },
+        { icon: '🚀', title: 'Publicación en stores', desc: 'Te acompañamos en el proceso completo de publicación en App Store y Google Play.' },
+      ],
+    },
+    useCases: {
+      title: 'Para quién es esto',
+      items: [
+        { icon: '🛒', profile: 'E-commerce móvil', pain: 'Tienda web que no convierte bien en móvil', solution: 'App nativa con checkout optimizado, pagos guardados y notificaciones de promociones', result: 'Aumenta conversión móvil hasta 3x' },
+        { icon: '🏥', profile: 'Clínicas y salud', pain: 'Pacientes que llaman para agendar citas y recordatorios manuales', solution: 'App de citas con recordatorios automáticos y videoconsulta integrada', result: 'Reduce no-shows 60% y libera al recepcionista' },
+        { icon: '🚚', profile: 'Logística y campo', pain: 'Repartidores con rutas en papel y sin confirmación digital de entrega', solution: 'App de rutas con GPS, firma digital y fotos de entrega en tiempo real', result: 'Elimina disputas y acelera liquidación de rutas' },
+        { icon: '👥', profile: 'Comunidades y clubes', pain: 'Comunicación dispersa en WhatsApp y grupos de Facebook', solution: 'App con directorio, eventos, noticias y chat privado para miembros', result: 'Centraliza la comunicación y aumenta el engagement' },
+      ],
+    },
+    results: {
+      title: 'Resultados reales',
+      items: [
+        { value: '1 código', label: 'iOS + Android', sub: 'Flutter cross-platform' },
+        { value: '8 sem', label: 'A producción', sub: 'MVP móvil funcional' },
+        { value: '60ms', label: 'Tiempo de respuesta', sub: 'Rendimiento nativo' },
+        { value: '3x', label: 'Más conversión', sub: 'vs web mobile' },
+      ],
+    },
+    pricing: {
+      title: 'Planes Apps Móviles',
+      subtitle: 'Precios en USD. No incluyen cuentas de desarrollador (Apple $99/año · Google $25 único).',
+      tiers: [
+        {
+          name: 'App MVP',
+          tagline: 'Para validar tu idea rápido',
+          price: '$8,000',
+          range: '– $18,000 USD',
+          time: '8–10 semanas',
+          color: '#EC4899',
+          featured: false,
+          features: ['Hasta 5 pantallas principales', 'Autenticación básica', 'Integración con 1 API', 'Push notifications', 'Publicación en stores', 'Soporte 30 días'],
+          cta: 'Solicitar propuesta',
+        },
+        {
+          name: 'App Completa',
+          tagline: 'Para producción con todas las funciones',
+          price: '$18,000',
+          range: '– $40,000 USD',
+          time: '3–5 meses',
+          color: '#00AEEF',
+          featured: true,
+          features: ['Pantallas ilimitadas', 'Autenticación completa', 'Backend incluido', 'Pagos in-app', 'Funciones nativas', 'Analytics de uso', 'Soporte 90 días'],
+          cta: 'La más solicitada',
+        },
+        {
+          name: 'App Enterprise',
+          tagline: 'Para operaciones críticas de negocio',
+          price: 'Desde $40,000',
+          range: 'USD',
+          time: '5–8 meses',
+          color: '#7C3AED',
+          featured: false,
+          features: ['Arquitectura offline-first', 'Sincronización en background', 'Módulo de administración web', 'API pública documentada', 'SLA garantizado', 'Equipo dedicado'],
+          cta: 'Hablar con el equipo',
+        },
+      ],
+    },
+    faq: {
+      title: 'Preguntas frecuentes',
+      items: [
+        { q: '¿Por qué Flutter y no React Native?', a: 'Flutter compila a código nativo real y tiene su propio motor gráfico. El resultado es más consistente entre plataformas y con mejor rendimiento en animaciones y transiciones.' },
+        { q: '¿La app se ve igual en iOS y Android?', a: 'El diseño es consistente pero respeta las convenciones de cada plataforma — navegación bottom tabs en iOS y drawer en Android cuando corresponde.' },
+        { q: '¿Necesito tener backend para la app?', a: 'No necesariamente. Podemos usar tu backend existente, construir uno nuevo con FastAPI/Node.js, o usar Firebase para apps más simples.' },
+        { q: '¿Cuánto cuesta publicar en App Store y Google Play?', a: 'App Store requiere cuenta Apple Developer ($99 USD/año). Google Play requiere cuenta Google Play Console ($25 USD único). Eso lo paga el cliente directamente.' },
+        { q: '¿Pueden actualizar la app después del lanzamiento?', a: 'Sí. Tenemos planes de mantenimiento mensual para actualizaciones, corrección de bugs y nuevas funcionalidades.' },
+      ],
+    },
+    form: {
+      title: 'Cuéntanos tu idea de app',
+      subtitle: 'Te respondemos en menos de 24 horas.',
+      name: 'Tu nombre',
+      email: 'Email empresarial',
+      company: 'Empresa',
+      useCase: '¿Qué debe hacer tu app?',
+      submit: 'Enviar →',
+      loading: 'Enviando...',
+      success: '¡Recibido! Te contactamos pronto.',
+    },
+    finalCta: {
+      title: '¿Listo para llevar tu negocio al bolsillo de tus clientes?',
+      subtitle: 'Primera reunión gratuita. Te decimos qué pantallas necesitas y cuánto costaría.',
+      cta: 'Agendar reunión gratuita',
+      note: 'Sin compromiso · Respuesta en 24h',
+    },
+    sticky: 'Agendar consulta de app gratuita',
+  },
+  en: {
+    badge: 'Service · Mobile Apps',
+    breadcrumb: { home: 'Home', services: 'Services', current: 'Mobile Apps' },
+    hero: {
+      title: 'Your app on iOS and Android',
+      titleAccent: 'with a single codebase.',
+      subtitle: 'We develop mobile apps with Flutter — one codebase for iOS and Android. Fast, native-looking and connected to your backend.',
+      cta: 'Schedule free meeting',
+      ctaSub: 'View pricing',
+    },
+    social: '5 apps launched in production this year',
+    includes: {
+      title: "What's included?",
+      items: [
+        { icon: '🎨', title: 'Mobile UI/UX design', desc: 'Touch-first interfaces with native components for each platform and optimized user flows.' },
+        { icon: '📱', title: 'Flutter cross-platform', desc: 'One codebase for iOS and Android. Without compromising performance or user experience.' },
+        { icon: '🔔', title: 'Push notifications', desc: 'Push notifications with Firebase Cloud Messaging for iOS and Android from day one.' },
+        { icon: '🔌', title: 'Backend integration', desc: 'We connect the app to your existing REST API or build the backend from scratch with FastAPI.' },
+        { icon: '📍', title: 'Native features', desc: 'GPS, camera, biometrics, in-app payments, Bluetooth and more device features.' },
+        { icon: '🚀', title: 'Store publishing', desc: 'We guide you through the full publishing process on App Store and Google Play.' },
+      ],
+    },
+    useCases: {
+      title: 'Who is this for',
+      items: [
+        { icon: '🛒', profile: 'Mobile e-commerce', pain: "Web store that doesn't convert well on mobile", solution: 'Native app with optimized checkout, saved payments and promotional notifications', result: 'Increase mobile conversion up to 3x' },
+        { icon: '🏥', profile: 'Clinics and health', pain: 'Patients calling to schedule appointments and manual reminders', solution: 'Appointment app with automatic reminders and integrated video consultation', result: 'Reduce no-shows 60% and free the receptionist' },
+        { icon: '🚚', profile: 'Logistics and field', pain: 'Delivery people with paper routes and no digital delivery confirmation', solution: 'Route app with GPS, digital signature and real-time delivery photos', result: 'Eliminate disputes and accelerate route settlement' },
+        { icon: '👥', profile: 'Communities and clubs', pain: 'Communication scattered across WhatsApp and Facebook groups', solution: 'App with directory, events, news and private chat for members', result: 'Centralize communication and increase engagement' },
+      ],
+    },
+    results: {
+      title: 'Real results',
+      items: [
+        { value: '1 code', label: 'iOS + Android', sub: 'Flutter cross-platform' },
+        { value: '8 wks', label: 'To production', sub: 'Functional mobile MVP' },
+        { value: '60ms', label: 'Response time', sub: 'Native performance' },
+        { value: '3x', label: 'More conversion', sub: 'vs mobile web' },
+      ],
+    },
+    pricing: {
+      title: 'Mobile App Plans',
+      subtitle: 'Prices in USD. Developer accounts not included (Apple $99/year · Google $25 one-time).',
+      tiers: [
+        {
+          name: 'App MVP',
+          tagline: 'To validate your idea fast',
+          price: '$8,000',
+          range: '– $18,000 USD',
+          time: '8–10 weeks',
+          color: '#EC4899',
+          featured: false,
+          features: ['Up to 5 main screens', 'Basic authentication', 'Integration with 1 API', 'Push notifications', 'Store publishing', '30-day support'],
+          cta: 'Request proposal',
+        },
+        {
+          name: 'Full App',
+          tagline: 'For production with all features',
+          price: '$18,000',
+          range: '– $40,000 USD',
+          time: '3–5 months',
+          color: '#00AEEF',
+          featured: true,
+          features: ['Unlimited screens', 'Full authentication', 'Backend included', 'In-app payments', 'Native features', 'Usage analytics', '90-day support'],
+          cta: 'Most requested',
+        },
+        {
+          name: 'Enterprise App',
+          tagline: 'For critical business operations',
+          price: 'From $40,000',
+          range: 'USD',
+          time: '5–8 months',
+          color: '#7C3AED',
+          featured: false,
+          features: ['Offline-first architecture', 'Background sync', 'Web admin module', 'Documented public API', 'Guaranteed SLA', 'Dedicated team'],
+          cta: 'Talk to the team',
+        },
+      ],
+    },
+    faq: {
+      title: 'Frequently asked questions',
+      items: [
+        { q: 'Why Flutter and not React Native?', a: 'Flutter compiles to real native code and has its own graphics engine. The result is more consistent across platforms with better performance in animations and transitions.' },
+        { q: 'Does the app look the same on iOS and Android?', a: "The design is consistent but respects each platform's conventions — bottom tab navigation on iOS and drawer on Android when appropriate." },
+        { q: 'Do I need a backend for the app?', a: "Not necessarily. We can use your existing backend, build a new one with FastAPI/Node.js, or use Firebase for simpler apps." },
+        { q: 'How much does it cost to publish on App Store and Google Play?', a: 'App Store requires an Apple Developer account ($99 USD/year). Google Play requires a Google Play Console account ($25 USD one-time). The client pays those directly.' },
+        { q: 'Can you update the app after launch?', a: 'Yes. We have monthly maintenance plans for updates, bug fixes and new features.' },
+      ],
+    },
+    form: {
+      title: 'Tell us about your app idea',
+      subtitle: 'We respond in less than 24 hours.',
+      name: 'Your name',
+      email: 'Business email',
+      company: 'Company',
+      useCase: 'What should your app do?',
+      submit: 'Send →',
+      loading: 'Sending...',
+      success: "Received! We'll contact you soon.",
+    },
+    finalCta: {
+      title: "Ready to put your business in your customers' pockets?",
+      subtitle: 'Free first meeting. We tell you what screens you need and how much it would cost.',
+      cta: 'Schedule free meeting',
+      note: 'No commitment · Response in 24h',
+    },
+    sticky: 'Schedule free app consultation',
+  },
+  fr: {
+    badge: 'Service · Applications Mobiles',
+    breadcrumb: { home: 'Accueil', services: 'Services', current: 'Applications Mobiles' },
+    hero: {
+      title: 'Votre app sur iOS et Android',
+      titleAccent: 'avec un seul code.',
+      subtitle: "Nous développons des applications mobiles avec Flutter — une seule base de code pour iOS et Android. Rapides, d'aspect natif et connectées à votre backend.",
+      cta: 'Planifier une réunion gratuite',
+      ctaSub: 'Voir les tarifs',
+    },
+    social: '5 apps lancées en production cette année',
+    includes: {
+      title: "Qu'est-ce qui est inclus ?",
+      items: [
+        { icon: '🎨', title: 'Design UI/UX mobile', desc: "Interfaces pensées pour le toucher, avec des composants natifs de chaque plateforme et des flux optimisés." },
+        { icon: '📱', title: 'Flutter cross-platform', desc: "Un seul code pour iOS et Android. Sans compromettre les performances ni l'expérience utilisateur." },
+        { icon: '🔔', title: 'Notifications push', desc: "Notifications push avec Firebase Cloud Messaging pour iOS et Android dès le premier jour." },
+        { icon: '🔌', title: 'Intégration backend', desc: "Nous connectons l'app à votre API REST existante ou construisons le backend depuis zéro avec FastAPI." },
+        { icon: '📍', title: 'Fonctions natives', desc: "GPS, caméra, biométrie, paiements in-app, Bluetooth et plus de fonctions de l'appareil." },
+        { icon: '🚀', title: 'Publication en stores', desc: "Nous vous accompagnons dans le processus complet de publication sur l'App Store et Google Play." },
+      ],
+    },
+    useCases: {
+      title: 'Pour qui est-ce fait',
+      items: [
+        { icon: '🛒', profile: 'E-commerce mobile', pain: "Boutique web qui ne convertit pas bien sur mobile", solution: "App native avec checkout optimisé, paiements sauvegardés et notifications de promotions", result: "Augmentez la conversion mobile jusqu'à 3x" },
+        { icon: '🏥', profile: 'Cliniques et santé', pain: "Patients qui appellent pour prendre rendez-vous et rappels manuels", solution: "App de rendez-vous avec rappels automatiques et téléconsultation intégrée", result: "Réduisez les absences de 60% et libérez la réceptionniste" },
+        { icon: '🚚', profile: 'Logistique et terrain', pain: "Livreurs avec des routes sur papier et sans confirmation digitale de livraison", solution: "App de routes avec GPS, signature digitale et photos de livraison en temps réel", result: "Éliminez les litiges et accélérez la liquidation des routes" },
+        { icon: '👥', profile: 'Communautés et clubs', pain: "Communication dispersée sur WhatsApp et groupes Facebook", solution: "App avec annuaire, événements, actualités et chat privé pour les membres", result: "Centralisez la communication et augmentez l'engagement" },
+      ],
+    },
+    results: {
+      title: 'Résultats réels',
+      items: [
+        { value: '1 code', label: 'iOS + Android', sub: 'Flutter cross-platform' },
+        { value: '8 sem', label: 'En production', sub: 'MVP mobile fonctionnel' },
+        { value: '60ms', label: 'Temps de réponse', sub: 'Performance native' },
+        { value: '3x', label: 'Plus de conversion', sub: 'vs web mobile' },
+      ],
+    },
+    pricing: {
+      title: 'Plans Applications Mobiles',
+      subtitle: "Prix en USD. Comptes développeurs non inclus (Apple 99$/an · Google 25$ unique).",
+      tiers: [
+        {
+          name: 'App MVP',
+          tagline: 'Pour valider votre idée rapidement',
+          price: '8 000 $',
+          range: '– 18 000 $ USD',
+          time: '8–10 semaines',
+          color: '#EC4899',
+          featured: false,
+          features: ["Jusqu'à 5 écrans principaux", 'Authentification basique', 'Intégration avec 1 API', 'Notifications push', 'Publication en stores', 'Support 30 jours'],
+          cta: 'Demander une proposition',
+        },
+        {
+          name: 'App Complète',
+          tagline: 'Pour la production avec toutes les fonctions',
+          price: '18 000 $',
+          range: '– 40 000 $ USD',
+          time: '3–5 mois',
+          color: '#00AEEF',
+          featured: true,
+          features: ['Écrans illimités', 'Authentification complète', 'Backend inclus', 'Paiements in-app', 'Fonctions natives', "Analytics d'utilisation", 'Support 90 jours'],
+          cta: 'La plus demandée',
+        },
+        {
+          name: 'App Enterprise',
+          tagline: "Pour les opérations critiques d'entreprise",
+          price: 'À partir de 40 000 $',
+          range: 'USD',
+          time: '5–8 mois',
+          color: '#7C3AED',
+          featured: false,
+          features: ['Architecture offline-first', 'Synchronisation en arrière-plan', "Module d'administration web", 'API publique documentée', 'SLA garanti', 'Équipe dédiée'],
+          cta: "Parler à l'équipe",
+        },
+      ],
+    },
+    faq: {
+      title: 'Questions fréquentes',
+      items: [
+        { q: 'Pourquoi Flutter et pas React Native ?', a: "Flutter compile en vrai code natif et possède son propre moteur graphique. Le résultat est plus cohérent entre plateformes avec de meilleures performances en animations et transitions." },
+        { q: "L'app a-t-elle le même aspect sur iOS et Android ?", a: "Le design est cohérent mais respecte les conventions de chaque plateforme — navigation en onglets bas sur iOS et drawer sur Android le cas échéant." },
+        { q: "Ai-je besoin d'un backend pour l'app ?", a: "Pas nécessairement. Nous pouvons utiliser votre backend existant, en construire un nouveau avec FastAPI/Node.js, ou utiliser Firebase pour les apps plus simples." },
+        { q: "Combien coûte la publication sur l'App Store et Google Play ?", a: "L'App Store nécessite un compte Apple Developer (99 $/an). Google Play nécessite un compte Google Play Console (25 $ unique). Le client les paie directement." },
+        { q: "Pouvez-vous mettre à jour l'app après le lancement ?", a: "Oui. Nous avons des plans de maintenance mensuelle pour les mises à jour, corrections de bugs et nouvelles fonctionnalités." },
+      ],
+    },
+    form: {
+      title: "Parlez-nous de votre idée d'app",
+      subtitle: 'Nous répondons en moins de 24 heures.',
+      name: 'Votre nom',
+      email: 'Email professionnel',
+      company: 'Entreprise',
+      useCase: 'Que doit faire votre app ?',
+      submit: 'Envoyer →',
+      loading: 'Envoi...',
+      success: 'Reçu ! Nous vous contactons bientôt.',
+    },
+    finalCta: {
+      title: 'Prêt à mettre votre business dans la poche de vos clients ?',
+      subtitle: 'Première réunion gratuite. Nous vous indiquons les écrans nécessaires et le coût.',
+      cta: 'Planifier une réunion gratuite',
+      note: 'Sans engagement · Réponse en 24h',
+    },
+    sticky: 'Planifier une consultation app gratuite',
+  },
+}
+
+export function ServicePageContent({ lang }: { lang: string }) {
+  const l = (['es', 'en', 'fr'].includes(lang) ? lang : 'es') as Lang
+  const t: PageContent = {
+    ...content[l],
+    lang: l,
+    slug: 'apps-moviles',
+    icon: <span style={{ fontSize: '12px' }}>📱</span>,
+  }
+  return <ServicePageTemplate t={t} />
+}

@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/OurSpecializedSectors.tsx
 'use client'
 
 import { Box, Typography, Button, Container, alpha } from '@mui/material'
@@ -266,7 +267,7 @@ export default function OurSpecializedSectors({ lang }: Props) {
       window.dataLayer.push({ event: 'SectorsCTA', ...payload })
       const w = 800, h = 700
       const win = window.open(
-        'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
+        'https://calendly.com/team_datheon/consulta-gratuita',
         'Calendly',
         `width=${w},height=${h},left=${window.screenX + (window.innerWidth - w) / 2},top=${window.screenY + (window.innerHeight - h) / 2}`
       )

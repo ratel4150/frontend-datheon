@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/(lang)/[lang]/landing/page.tsx
 // src\app\(lang)\[lang]\landing\page.tsx
 
 import {  Box } from '@mui/material'

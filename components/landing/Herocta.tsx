@@ -43,7 +43,7 @@ const QUALIFY_OPTS = {
   ],
 }
 
-const CALENDLY_URL = 'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica'
+const CALENDLY_URL = 'https://calendly.com/team_datheon/consulta-gratuita'
 
 const ui = {
   qualify:      { es: '¿Qué necesitas?',                en: 'What do you need?',              fr: 'Que vous faut-il ?'              },

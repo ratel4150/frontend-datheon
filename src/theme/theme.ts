@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/theme/theme.ts
 // src\theme\theme.ts
 import { createTheme } from '@mui/material/styles'
 

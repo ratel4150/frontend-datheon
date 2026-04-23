@@ -14,6 +14,7 @@ import {
 } from 'react-icons/si'
 import { FiCalendar, FiArrowRight, FiCheck } from 'react-icons/fi'
 import { getDeviceData } from '../../lib/tracking/deviceTracking'
+import { HeroCTABlock } from './Herocta'
 
 // ─── Tokens ──────────────────────────────────────────────────
 const C = {
@@ -356,7 +357,7 @@ export function Hero({ lang }: Props) {
           </Box>
 
           {/* CTAs */}
-          <Box
+         {/*  <Box
             component={motion.div}
             variants={item}
             sx={{
@@ -421,7 +422,8 @@ export function Hero({ lang }: Props) {
             >
               {t.ctaSub}
             </Button>
-          </Box>
+          </Box> */}
+          <HeroCTABlock lang={lang}/>
 
           {/* Trust badges */}
           <Box

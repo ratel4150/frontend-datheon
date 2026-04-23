@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/landing/Footer.tsx
 'use client'
 
 import { Box, Container, Typography, alpha } from '@mui/material'
@@ -43,10 +44,10 @@ const company = [
 ]
 
 const socials = [
-  { Icon: FaXTwitter,   href: 'https://x.com',         label: 'X / Twitter' },
-  { Icon: FaLinkedinIn, href: 'https://linkedin.com',   label: 'LinkedIn'    },
-  { Icon: FaInstagram,  href: 'https://instagram.com',  label: 'Instagram'   },
-  { Icon: FaGithub,     href: 'https://github.com',     label: 'GitHub'      },
+  { Icon: FaXTwitter,   href: 'https://x.com/Datheon_team',         label: 'X / Twitter' },
+  { Icon: FaLinkedinIn, href: 'https://www.linkedin.com/company/datheon-io',   label: 'LinkedIn'    },
+  { Icon: FaInstagram,  href: 'https://www.instagram.com/team.datheon',  label: 'Instagram'   },
+  { Icon: FaGithub,     href: 'https://github.com/Datheon',     label: 'GitHub'      },
 ]
 
 const tech = ['Next.js 15', 'FastAPI', 'Groq', 'pgvector', 'Flutter', 'Terraform']
@@ -142,7 +143,7 @@ export default function FooterDatheon() {
             </Box>
             <Box
               component="a"
-              href="https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica"
+              href="https://calendly.com/team_datheon/consulta-gratuita"
               target="_blank"
               rel="noopener noreferrer"
               sx={{

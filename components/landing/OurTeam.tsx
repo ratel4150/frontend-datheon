@@ -345,7 +345,7 @@ const handleCTA = useCallback(() => {
       const w = 800, h = 700
 
       const win = window.open(
-        'https://calendly.com/d/cv8d-jjp-nhd/consultoria-estrategica',
+        'https://calendly.com/team_datheon/consulta-gratuita',
         'Calendly',
         `width=${w},height=${h},left=${
           window.screenX + (window.innerWidth - w) / 2

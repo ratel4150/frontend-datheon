@@ -1,3 +1,4 @@
+// File: frontend-datheon/src/app/(lang)/[lang]/landing/LandingContent.tsx
 // src\app\(lang)\[lang]\landing\LandingContent.tsx
 // src/app/(lang)/[lang]/landing/LandingContent.tsx
 'use client'
