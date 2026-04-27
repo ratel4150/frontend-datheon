@@ -1,0 +1,1163 @@
+'use client'
+
+import { useEffect, useRef, useState, useCallback } from 'react'
+import { Box, Typography, Button, alpha, CircularProgress, Chip, LinearProgress } from '@mui/material'
+import { FiCheck, FiX, FiPlay, FiChevronLeft, FiChevronRight, FiArrowLeft, FiBookOpen, FiCode, FiHelpCircle } from 'react-icons/fi'
+import { MdOutlineAutorenew } from 'react-icons/md'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { EditorView, basicSetup } from 'codemirror'
+import { EditorState } from '@codemirror/state'
+import type { ViewUpdate } from '@codemirror/view'
+import { javascript } from '@codemirror/lang-javascript'
+import { python } from '@codemirror/lang-python'
+import { oneDark } from '@codemirror/theme-one-dark'
+import { keymap } from '@codemirror/view'
+import { defaultKeymap, indentWithTab } from '@codemirror/commands'
+
+const C = {
+  bg:     '#0A0C10',
+  card:   '#13161D',
+  border: 'rgba(255,255,255,0.07)',
+  text:   '#F1F5F9',
+  muted:  'rgba(255,255,255,0.4)',
+  accent: '#00AEEF',
+  green:  '#22C55E',
+  red:    '#EF4444',
+  yellow: '#F59E0B',
+} as const
+
+type Step = 'theory' | 'exercise'
+type EvalType = 'quiz'|'lab'|'cloze'|'drag_drop'|'flashcard'|'timeline'|'decision'|'survey'|'challenge'|'mindmap'|'replit'|'github'
+
+interface TestResult { id: string; description: string; passed: boolean; error?: string }
+
+interface Subsection {
+  id: string; title: any; evalType: EvalType; courseId: string
+  theory:   { es?: string }
+  evalData: any
+  hint:     { es?: string }
+}
+interface Course  { id: string; slug: string; title: any; color: string; icon: string }
+interface Block   { id: string; title: any }
+interface Topic   { id: string; title: any }
+interface Lesson  { id: string; title: any }
+
+interface Props {
+  course:      Course
+  block:       Block
+  topic:       Topic
+  lesson:      Lesson
+  subsection:  Subsection
+  prev:        Subsection | null
+  next:        Subsection | null
+  userId:      string
+  savedCode:   string | null
+  completed:   boolean
+  totalSubs:   number
+  completedSubs: number
+}
+
+// ─── CodeMirror ───────────────────────────────────────────────
+function CodeEditor({ code, onChange, lang }: { code: string; onChange: (v: string) => void; lang: string }) {
+  const ref  = useRef<HTMLDivElement>(null)
+  const view = useRef<EditorView | null>(null)
+  useEffect(() => {
+    if (!ref.current) return
+    const langExt = lang === 'python' ? python() : javascript({ jsx: true, typescript: true })
+    const state = EditorState.create({
+      doc: code,
+      extensions: [
+        basicSetup, langExt, oneDark,
+        keymap.of([...defaultKeymap, indentWithTab]),
+        EditorView.updateListener.of((u: ViewUpdate) => { if (u.docChanged) onChange(u.state.doc.toString()) }),
+        EditorView.theme({ '&': { height: '100%', fontSize: '14px' }, '.cm-scroller': { fontFamily: '"Fira Code", monospace', overflow: 'auto' }, '.cm-content': { padding: '12px 0' } }),
+      ],
+    })
+    view.current = new EditorView({ state, parent: ref.current })
+    return () => { view.current?.destroy(); view.current = null }
+  }, [])
+  useEffect(() => {
+    const v = view.current; if (!v) return
+    const cur = v.state.doc.toString()
+    if (cur !== code) v.dispatch({ changes: { from: 0, to: cur.length, insert: code } })
+  }, [code])
+  return <Box ref={ref} sx={{ height: '100%', '& .cm-editor': { height: '100%' }, '& .cm-editor.cm-focused': { outline: 'none' } }}/>
+}
+
+// ─── Test runner ──────────────────────────────────────────────
+function runTests(code: string, tests: any[]): Promise<TestResult[]> {
+  return new Promise(resolve => {
+    const iframe = document.createElement('iframe')
+    iframe.style.cssText = 'display:none;position:fixed;'
+    iframe.setAttribute('sandbox', 'allow-scripts')
+    document.body.appendChild(iframe)
+    const results: TestResult[] = []
+    let done = 0, settled = false
+    const cleanup = () => {
+      if (settled) return; settled = true
+      window.removeEventListener('message', handler)
+      if (document.body.contains(iframe)) document.body.removeChild(iframe)
+    }
+    const timeout = setTimeout(() => { cleanup(); resolve(tests.map(t => ({ id: t.id, description: t.description, passed: false, error: 'Timeout' }))) }, 6000)
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== 'ud-test-result') return
+      results.push(e.data.result); done++
+      if (done === tests.length) { clearTimeout(timeout); cleanup(); resolve(results) }
+    }
+    window.addEventListener('message', handler)
+    const testScript = tests.map(t => `;(function(){try{var _p=(function(){${t.testFn}})();parent.postMessage({type:'ud-test-result',result:{id:'${t.id}',description:${JSON.stringify(t.description)},passed:!!_p}},'*')}catch(_e){parent.postMessage({type:'ud-test-result',result:{id:'${t.id}',description:${JSON.stringify(t.description)},passed:false,error:_e.message}},'*')}})()`).join('\n')
+    // const/let no son accesibles desde IIFEs — convertir a var para scope global
+    const normalizedCode = code
+      .replace(/\bconst\b/g, 'var')
+      .replace(/\blet\b/g, 'var')
+
+    const html = '<!DOCTYPE html><html><body><script>'
+      + 'var __logs=[];'
+      + 'var __origLog=console.log;'
+      + 'console.log=function(){var a=Array.prototype.slice.call(arguments);__logs.push(a.map(function(x){return String(x)}).join(" "));__origLog.apply(console,a)};'
+      + 'try{' + normalizedCode + '}catch(_e){}'
+      + testScript
+      + '<\/script></body></html>'
+
+    iframe.srcdoc = html
+  })
+}
+
+// ─── Quiz eval ────────────────────────────────────────────────
+function QuizEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const [answers, setAnswers] = useState<Record<string, number>>({})
+  const [checked, setChecked] = useState(false)
+  const [score, setScore]     = useState(0)
+  const qs: any[] = data.questions ?? []
+
+  const check = () => {
+    let c = 0; qs.forEach(q => { if (answers[q.id] === q.correct) c++ })
+    setScore(c); setChecked(true)
+    if (c === qs.length) setTimeout(onComplete, 800)
+  }
+  const reset = () => { setAnswers({}); setChecked(false); setScore(0) }
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {qs.map((q, qi) => (
+        <Box key={q.id}>
+          <Typography sx={{ fontWeight: 600, fontSize: '0.88rem', mb: 1.5, lineHeight: 1.6, color: C.text }}>{qi+1}. {q.q}</Typography>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            {q.options.map((opt: string, oi: number) => {
+              const sel = answers[q.id] === oi
+              const ok  = checked && oi === q.correct
+              const bad = checked && sel && oi !== q.correct
+              return (
+                <Box key={oi} onClick={() => !checked && setAnswers(p => ({ ...p, [q.id]: oi }))}
+                  sx={{ px: 2, py: 1.25, borderRadius: '10px', cursor: checked ? 'default' : 'pointer', display: 'flex', alignItems: 'center', gap: 1.5, transition: 'all 0.15s',
+                    border: `1px solid ${ok ? alpha(C.green, 0.6) : bad ? alpha(C.red, 0.6) : sel ? alpha(color, 0.6) : C.border}`,
+                    bgcolor: ok ? alpha(C.green, 0.08) : bad ? alpha(C.red, 0.08) : sel ? alpha(color, 0.08) : 'transparent',
+                    '&:hover': { bgcolor: checked ? undefined : 'rgba(255,255,255,0.04)' } }}>
+                  <Box sx={{ width: 16, height: 16, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    border: `2px solid ${ok ? C.green : bad ? C.red : sel ? color : 'rgba(255,255,255,0.2)'}`,
+                    bgcolor: ok ? alpha(C.green, 0.2) : bad ? alpha(C.red, 0.2) : sel ? alpha(color, 0.2) : 'transparent' }}>
+                    {(ok || (sel && !bad)) && <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: ok ? C.green : color }}/>}
+                  </Box>
+                  <Typography sx={{ fontSize: '0.85rem', color: ok ? C.green : bad ? C.red : C.text, flex: 1 }}>{opt}</Typography>
+                  {ok && <FiCheck size={13} color={C.green}/>}
+                  {bad && <FiX size={13} color={C.red}/>}
+                </Box>
+              )
+            })}
+          </Box>
+        </Box>
+      ))}
+      <Box sx={{ display: 'flex', gap: 1.5 }}>
+        {!checked ? (
+          <Button onClick={check} disabled={Object.keys(answers).length < qs.length} variant="contained"
+            sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', px: 2.5, '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.25), color: 'rgba(255,255,255,0.3)' } }}>
+            Verificar
+          </Button>
+        ) : (
+          <>
+            <Box sx={{ px: 2, py: 1.25, flex: 1, bgcolor: score === qs.length ? alpha(C.green, 0.08) : alpha(C.yellow, 0.08), border: `1px solid ${score === qs.length ? alpha(C.green, 0.3) : alpha(C.yellow, 0.3)}`, borderRadius: '10px' }}>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: score === qs.length ? C.green : C.yellow }}>
+                {score === qs.length ? '✅ ¡Perfecto!' : `${score}/${qs.length} correctas — intenta de nuevo`}
+              </Typography>
+            </Box>
+            {score < qs.length && (
+              <Button onClick={reset} size="small" startIcon={<MdOutlineAutorenew size={14}/>} sx={{ color: C.muted, textTransform: 'none', '&:hover': { color: C.text } }}>Reintentar</Button>
+            )}
+          </>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+// ─── Cloze eval ───────────────────────────────────────────────
+function ClozeEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const blanks: any[] = data.blanks ?? []
+  const [answers, setAnswers] = useState<Record<string, string>>({})
+  const [checked, setChecked] = useState(false)
+  const [results, setResults] = useState<Record<string, boolean>>({})
+
+  const check = () => {
+    const r: Record<string, boolean> = {}
+    let allOk = true
+    blanks.forEach(b => {
+      const ok = (answers[b.id] ?? '').trim().toLowerCase() === b.answer.toLowerCase()
+      r[b.id] = ok
+      if (!ok) allOk = false
+    })
+    setResults(r); setChecked(true)
+    if (allOk) setTimeout(onComplete, 800)
+  }
+
+  const parts = (data.text ?? '').split('___')
+  return (
+    <Box>
+      <Typography sx={{ fontSize: '0.88rem', lineHeight: 2.2, color: C.text, mb: 3 }}>
+        {parts.map((part: string, i: number) => (
+          <span key={i}>
+            {part}
+            {i < blanks.length && (
+              <Box component="input"
+                value={answers[blanks[i].id] ?? ''}
+                onChange={e => !checked && setAnswers(p => ({ ...p, [blanks[i].id]: e.target.value }))}
+                placeholder="___"
+                sx={{
+                  display: 'inline-block', width: 100, mx: 0.75,
+                  border: 'none', borderBottom: `2px solid ${checked ? (results[blanks[i].id] ? C.green : C.red) : alpha(color, 0.6)}`,
+                  bgcolor: 'transparent', textAlign: 'center', fontSize: '0.88rem', color: color,
+                  outline: 'none', fontFamily: 'inherit', pb: 0.25,
+                }}
+              />
+            )}
+          </span>
+        ))}
+      </Typography>
+      {!checked ? (
+        <Button onClick={check} variant="contained" disabled={Object.keys(answers).length < blanks.length}
+          sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.25), color: 'rgba(255,255,255,0.3)' } }}>
+          Verificar
+        </Button>
+      ) : (
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Box sx={{ px: 2, py: 1.25, flex: 1, bgcolor: Object.values(results).every(Boolean) ? alpha(C.green, 0.08) : alpha(C.yellow, 0.08), border: `1px solid ${Object.values(results).every(Boolean) ? alpha(C.green, 0.3) : alpha(C.yellow, 0.3)}`, borderRadius: '10px' }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: Object.values(results).every(Boolean) ? C.green : C.yellow }}>
+              {Object.values(results).every(Boolean) ? '✅ ¡Correcto!' : 'Algunas respuestas incorrectas — revisa e intenta'}
+            </Typography>
+          </Box>
+          {!Object.values(results).every(Boolean) && (
+            <Button onClick={() => { setAnswers({}); setChecked(false); setResults({}) }} size="small" startIcon={<MdOutlineAutorenew size={14}/>} sx={{ color: C.muted, textTransform: 'none', '&:hover': { color: C.text } }}>Reintentar</Button>
+          )}
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Flashcard eval ───────────────────────────────────────────
+function FlashcardEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const cards: any[] = data.cards ?? []
+  const [idx, setIdx]       = useState(0)
+  const [flipped, setFlip]  = useState(false)
+  const [known, setKnown]   = useState<Set<string>>(new Set())
+  const [unknown, setUnknown] = useState<Set<string>>(new Set())
+
+  const card = cards[idx]
+  const total = cards.length
+  const done  = known.size + unknown.size
+
+  const handleKnown = () => {
+    setKnown(p => new Set([...p, card.id]))
+    setFlip(false)
+    if (idx < total - 1) setIdx(i => i+1)
+    if (done + 1 === total && unknown.size === 0) setTimeout(onComplete, 600)
+  }
+  const handleUnknown = () => {
+    setUnknown(p => new Set([...p, card.id]))
+    setFlip(false)
+    if (idx < total - 1) setIdx(i => i+1)
+  }
+
+  if (!card) return null
+  return (
+    <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+        <Typography sx={{ fontSize: '0.78rem', color: C.muted }}>Tarjeta {idx+1} de {total}</Typography>
+        <Typography sx={{ fontSize: '0.78rem', color: C.green }}>✅ {known.size} sabidas</Typography>
+      </Box>
+      <Box onClick={() => setFlip(f => !f)}
+        sx={{ cursor: 'pointer', bgcolor: flipped ? alpha(color, 0.08) : C.card, border: `1px solid ${flipped ? alpha(color, 0.4) : C.border}`, borderRadius: '16px', p: 4, minHeight: 140, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 1.5, transition: 'all 0.25s ease', mb: 2 }}>
+        <Typography sx={{ fontSize: '0.7rem', color: C.muted, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{flipped ? 'Respuesta' : 'Pregunta — toca para revelar'}</Typography>
+        <Typography sx={{ fontSize: flipped ? '1.2rem' : '0.95rem', fontWeight: flipped ? 700 : 400, color: flipped ? color : C.text, textAlign: 'center', lineHeight: 1.5 }}>
+          {flipped ? card.back : card.front}
+        </Typography>
+      </Box>
+      {flipped && (
+        <Box sx={{ display: 'flex', gap: 1.5 }}>
+          <Button fullWidth onClick={handleUnknown}
+            sx={{ py: 1.25, border: `1px solid ${alpha(C.red, 0.4)}`, color: C.red, bgcolor: alpha(C.red, 0.06), fontWeight: 600, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(C.red, 0.12) } }}>
+            No lo sabía
+          </Button>
+          <Button fullWidth onClick={handleKnown}
+            sx={{ py: 1.25, border: `1px solid ${alpha(C.green, 0.4)}`, color: C.green, bgcolor: alpha(C.green, 0.06), fontWeight: 600, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(C.green, 0.12) } }}>
+            Ya lo sabía
+          </Button>
+        </Box>
+      )}
+      {done === total && unknown.size === 0 && (
+        <Box sx={{ mt: 2, p: 2, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.3)}`, borderRadius: '10px', textAlign: 'center' }}>
+          <Typography sx={{ color: C.green, fontWeight: 700, fontSize: '0.88rem' }}>🎉 ¡Todas las tarjetas dominadas!</Typography>
+        </Box>
+      )}
+      {done === total && unknown.size > 0 && (
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <Typography sx={{ fontSize: '0.82rem', color: C.yellow }}>{unknown.size} tarjetas por repasar. ¿Reintentar?</Typography>
+          <Button onClick={() => { setIdx(0); setFlip(false); setKnown(new Set()); setUnknown(new Set()) }} size="small" startIcon={<MdOutlineAutorenew size={14}/>} sx={{ color: C.muted, textTransform: 'none', alignSelf: 'flex-start', '&:hover': { color: C.text } }}>Reiniciar tarjetas</Button>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Lab eval (Codewars style) ──────────────────────────────
+function LabEval({ data, color, code, setCode, onComplete }: {
+  data: any; color: string; code: string
+  setCode: (c: string) => void; onComplete: (code: string) => void
+}) {
+  const [activeLeft, setActiveLeft] = useState<'instructions'|'output'>('instructions')
+  const testCode = data.sampleTests ?? '// No hay tests de ejemplo disponibles'
+  const [results,    setResults]    = useState<TestResult[]>([])
+  const [logs,       setLogs]       = useState<string[]>([])
+  const [running,    setRunning]    = useState(false)
+  const [panelW,     setPanelW]     = useState(50)
+  const [dragging,   setDragging]   = useState(false)
+  const dragRef = useRef<{ startX: number; startW: number } | null>(null)
+  const tests: any[] = data.tests ?? []
+
+  const handleRun = async () => {
+    setRunning(true)
+    setActiveLeft('output')
+
+    // Capture console.log output
+    const captured: string[] = []
+    const runCode = `
+      var _logs = [];
+      var _origLog = console.log;
+      console.log = function() {
+        var args = Array.prototype.slice.call(arguments);
+        _logs.push(args.map(function(a){ return typeof a === 'object' ? JSON.stringify(a) : String(a) }).join(' '));
+        _origLog.apply(console, args);
+      };
+      try { ${code} } catch(e) { _logs.push('Error: ' + e.message); }
+      console.log = _origLog;
+    `
+
+    const res = await runTests(runCode + '' + code, tests)
+    setResults(res)
+    setRunning(false)
+    if (res.every(r => r.passed)) onComplete(code)
+  }
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    dragRef.current = { startX: e.clientX, startW: panelW }; setDragging(true)
+  }
+  useEffect(() => {
+    if (!dragging) return
+    const onMove = (e: MouseEvent) => {
+      if (!dragRef.current) return
+      const el = document.getElementById('lab-shell')
+      if (!el) return
+      const dx = e.clientX - dragRef.current.startX
+      setPanelW(Math.min(65, Math.max(30, dragRef.current.startW + (dx / el.offsetWidth) * 100)))
+    }
+    const onUp = () => setDragging(false)
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp) }
+  }, [dragging])
+
+  const passed = results.filter(r => r.passed).length
+  const allPassed = results.length > 0 && results.every(r => r.passed)
+
+  return (
+    <Box id="lab-shell" sx={{ display: 'flex', height: 420, border: `1px solid ${C.border}`, borderRadius: '12px', overflow: 'hidden', userSelect: dragging ? 'none' : 'auto', mt: 1 }}>
+
+      {/* ── Panel izquierdo ── */}
+      <Box sx={{ width: `${100-panelW}%`, display: 'flex', flexDirection: 'column', borderRight: `1px solid ${C.border}`, minWidth: 0 }}>
+
+        {/* Tabs */}
+        <Box sx={{ display: 'flex', borderBottom: `1px solid ${C.border}`, flexShrink: 0, bgcolor: '#0d0f14' }}>
+          {(['instructions','output'] as const).map(tab => (
+            <Box key={tab} onClick={() => setActiveLeft(tab)}
+              sx={{ px: 2, py: 1, fontSize: '0.72rem', fontWeight: 500, cursor: 'pointer',
+                color: activeLeft === tab ? C.text : C.muted,
+                borderBottom: `2px solid ${activeLeft === tab ? color : 'transparent'}`,
+                textTransform: 'capitalize', letterSpacing: '0.02em',
+              }}>
+              {tab === 'instructions' ? 'Instrucciones' : `Output ${results.length > 0 ? `(${passed}/${results.length})` : ''}`}
+            </Box>
+          ))}
+        </Box>
+
+        {/* Instructions */}
+        {activeLeft === 'instructions' && (
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 2,
+            fontSize: '0.82rem', lineHeight: 1.75, color: 'rgba(255,255,255,0.75)',
+            '& ol,& ul': { pl: 2.5 }, '& li': { mb: 0.5 },
+            '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.6, borderRadius: '4px', fontFamily: '"Fira Code", monospace', fontSize: '0.78rem', color: '#79c0ff' },
+            '& h2,& h3': { color: C.text, fontWeight: 600, mb: 0.75, mt: 1.5, fontSize: '0.88rem' },
+          }} dangerouslySetInnerHTML={{ __html: data.instructions ?? '<p>Completa el código según las instrucciones.</p>' }}/>
+        )}
+
+        {/* Output */}
+        {activeLeft === 'output' && (
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5, fontFamily: '"Fira Code", monospace', fontSize: '0.78rem' }}>
+            {results.length === 0 && !running && (
+              <Typography sx={{ color: C.muted, fontSize: '0.78rem', fontFamily: '"Fira Code", monospace' }}>
+                Corre los tests para ver el output...
+              </Typography>
+            )}
+            {running && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CircularProgress size={12} sx={{ color: color }}/>
+                <Typography sx={{ color: C.muted, fontSize: '0.78rem', fontFamily: '"Fira Code", monospace' }}>Corriendo tests...</Typography>
+              </Box>
+            )}
+            {results.map((r, i) => (
+              <Box key={r.id} sx={{ display: 'flex', gap: 1, mb: 0.75, alignItems: 'flex-start' }}>
+                <Box sx={{ flexShrink: 0, mt: '1px' }}>
+                  {r.passed
+                    ? <FiCheck size={12} color={C.green}/>
+                    : <FiX size={12} color={C.red}/>}
+                </Box>
+                <Box>
+                  <Typography sx={{ fontSize: '0.75rem', color: r.passed ? C.green : C.red, lineHeight: 1.4 }}>
+                    {r.description}
+                  </Typography>
+                  {r.error && (
+                    <Typography sx={{ fontSize: '0.72rem', color: alpha(C.red, 0.75), mt: 0.25, fontFamily: '"Fira Code", monospace' }}>
+                      {r.error}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            ))}
+            {allPassed && (
+              <Box sx={{ mt: 1.5, px: 1.5, py: 1, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.25)}`, borderRadius: '8px' }}>
+                <Typography sx={{ fontSize: '0.78rem', color: C.green, fontWeight: 600 }}>🎉 ¡Todos los tests pasaron!</Typography>
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* Run button */}
+        <Box sx={{ px: 1.5, py: 1.25, borderTop: `1px solid ${C.border}`, display: 'flex', gap: 1, flexShrink: 0, bgcolor: '#0d0f14' }}>
+          <Button size="small" variant="contained"
+            startIcon={running ? <CircularProgress size={11} sx={{ color: '#fff' }}/> : <FiPlay size={11}/>}
+            onClick={handleRun} disabled={running}
+            sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '7px', fontSize: '0.75rem', py: 0.6,
+              '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.3), color: '#fff' } }}>
+            {running ? 'Corriendo...' : 'Correr tests'}
+          </Button>
+          <Button size="small" startIcon={<MdOutlineAutorenew size={12}/>}
+            onClick={() => { setCode(data.starterCode ?? ''); setResults([]); setLogs([]) }}
+            sx={{ color: C.muted, textTransform: 'none', fontSize: '0.75rem', '&:hover': { color: C.text } }}>
+            Reiniciar
+          </Button>
+        </Box>
+      </Box>
+
+      {/* ── Drag handle ── */}
+      <Box onMouseDown={onMouseDown}
+        sx={{ width: 4, cursor: 'col-resize', flexShrink: 0, bgcolor: dragging ? color : 'transparent', '&:hover': { bgcolor: alpha(color, 0.4) }, transition: 'background 0.15s' }}/>
+
+      {/* ── Panel derecho: solution editor + sample tests ── */}
+      <Box sx={{ width: `${panelW}%`, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+
+        {/* Solution editor */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', borderBottom: `1px solid ${C.border}`, minHeight: 0 }}>
+          <Box sx={{ px: 2, py: 0.75, borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0, bgcolor: '#0d0f14' }}>
+            <Box sx={{ display: 'flex', gap: 0.5 }}>
+              {['#EF4444','#F59E0B','#22C55E'].map(c => <Box key={c} sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: c }}/>)}
+            </Box>
+            <Typography sx={{ fontSize: '0.7rem', color: C.muted, ml: 0.5, fontFamily: '"Fira Code", monospace' }}>solution.js</Typography>
+          </Box>
+          <Box sx={{ flex: 1, overflow: 'hidden', '& .cm-editor': { height: '100%' } }}>
+            <CodeEditor code={code} onChange={setCode} lang="javascript"/>
+          </Box>
+        </Box>
+
+        {/* Sample tests editor */}
+        <Box sx={{ height: 140, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+          <Box sx={{ px: 2, py: 0.6, borderBottom: `1px solid ${C.border}`, flexShrink: 0, bgcolor: '#0d0f14' }}>
+            <Typography sx={{ fontSize: '0.68rem', color: C.muted, fontFamily: '"Fira Code", monospace', letterSpacing: '0.04em' }}>
+              SAMPLE TESTS
+            </Typography>
+          </Box>
+          <Box sx={{ flex: 1, overflowY: 'auto', p: 1.5,
+            fontFamily: '"Fira Code", monospace', fontSize: '0.72rem',
+            lineHeight: 1.7, color: 'rgba(255,255,255,0.35)',
+            whiteSpace: 'pre', userSelect: 'none', pointerEvents: 'none',
+          }}>
+            {testCode}
+          </Box>
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
+// ─── Drag & Drop eval ─────────────────────────────────────────
+function DragDropEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const pairs: any[] = data.pairs ?? []
+  const [checked, setChecked] = useState(false)
+  const [selected, setSelected] = useState<string | null>(null)
+  const [matches, setMatches]   = useState<Record<string, string>>({})
+
+  const lefts  = pairs.map((p: any) => p.left)
+  const rights = [...new Set(pairs.map((p: any) => p.right))]
+
+  const handleLeft = (id: string) => { if (checked) return; setSelected(id) }
+  const handleRight = (right: string) => {
+    if (!selected || checked) return
+    setMatches(p => ({ ...p, [selected]: right }))
+    setSelected(null)
+  }
+
+  const check = () => {
+    const allOk = pairs.every((p: any) => matches[p.id] === p.right)
+    setChecked(true)
+    if (allOk) setTimeout(onComplete, 800)
+  }
+
+  return (
+    <Box>
+      <Typography sx={{ fontSize: '0.82rem', color: C.muted, mb: 2 }}>{data.instruction ?? 'Asocia los elementos'}</Typography>
+      <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2, mb: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Typography sx={{ fontSize: '0.7rem', color: C.muted, mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Elementos</Typography>
+          {pairs.map((p: any) => {
+            const matched = matches[p.id]
+            const ok = checked && matched === p.right
+            const bad = checked && matched && matched !== p.right
+            return (
+              <Box key={p.id} onClick={() => handleLeft(p.id)}
+                sx={{ px: 1.5, py: 1, borderRadius: '9px', cursor: checked ? 'default' : 'pointer', fontSize: '0.82rem', transition: 'all 0.15s',
+                  border: `1px solid ${ok ? alpha(C.green, 0.5) : bad ? alpha(C.red, 0.5) : selected === p.id ? alpha(color, 0.6) : C.border}`,
+                  bgcolor: ok ? alpha(C.green, 0.07) : bad ? alpha(C.red, 0.07) : selected === p.id ? alpha(color, 0.08) : 'transparent',
+                  color: ok ? C.green : bad ? C.red : C.text }}>
+                {p.left} {matched && <Box component="span" sx={{ color: C.muted, fontSize: '0.72rem' }}>→ {matched}</Box>}
+              </Box>
+            )
+          })}
+        </Box>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+          <Typography sx={{ fontSize: '0.7rem', color: C.muted, mb: 0.5, textTransform: 'uppercase', letterSpacing: '0.07em' }}>Destinos</Typography>
+          {(rights as string[]).map((r, ri) => (
+            <Box key={ri} onClick={() => handleRight(r)}
+              sx={{ px: 1.5, py: 1, borderRadius: '9px', cursor: selected && !checked ? 'pointer' : 'default', fontSize: '0.82rem', border: `1px solid ${C.border}`, color: C.muted, transition: 'all 0.15s', '&:hover': selected && !checked ? { borderColor: alpha(color, 0.5), color: color } : {} }}>
+              {r}
+            </Box>
+          ))}
+        </Box>
+      </Box>
+      {!checked ? (
+        <Button onClick={check} disabled={Object.keys(matches).length < pairs.length} variant="contained"
+          sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.25), color: 'rgba(255,255,255,0.3)' } }}>
+          Verificar
+        </Button>
+      ) : (
+        <Box sx={{ px: 2, py: 1.25, bgcolor: pairs.every((p: any) => matches[p.id] === p.right) ? alpha(C.green, 0.08) : alpha(C.yellow, 0.08), border: `1px solid ${pairs.every((p: any) => matches[p.id] === p.right) ? alpha(C.green, 0.3) : alpha(C.yellow, 0.3)}`, borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: pairs.every((p: any) => matches[p.id] === p.right) ? C.green : C.yellow }}>
+            {pairs.every((p: any) => matches[p.id] === p.right) ? '✅ ¡Todas correctas!' : 'Algunas incorrectas — revisa las marcadas en rojo'}
+          </Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+
+// ─── Timeline eval ───────────────────────────────────────────
+function TimelineEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const events: any[] = data.events ?? []
+  const correct: string[] = data.correct_order ?? []
+  const [order, setOrder] = useState<string[]>(events.map((e: any) => e.id))
+  const [checked, setChecked] = useState(false)
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+
+  const moveUp   = (i: number) => { if (i === 0 || checked) return; const o = [...order]; [o[i-1],o[i]] = [o[i],o[i-1]]; setOrder(o) }
+  const moveDown = (i: number) => { if (i === order.length-1 || checked) return; const o = [...order]; [o[i],o[i+1]] = [o[i+1],o[i]]; setOrder(o) }
+
+  const check = () => {
+    setChecked(true)
+    if (JSON.stringify(order) === JSON.stringify(correct)) setTimeout(onComplete, 800)
+  }
+
+  const getEvent = (id: string) => events.find((e: any) => e.id === id)
+
+  return (
+    <Box>
+      <Typography sx={{ fontSize: '0.82rem', color: C.muted, mb: 2 }}>{data.instruction ?? 'Ordena los eventos cronológicamente'}</Typography>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mb: 2 }}>
+        {order.map((id, i) => {
+          const ev = getEvent(id)
+          const isCorrect = checked && correct[i] === id
+          const isWrong   = checked && correct[i] !== id
+          return (
+            <Box key={id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 2, py: 1.25, borderRadius: '10px', border: `1px solid ${isCorrect ? alpha(C.green, 0.5) : isWrong ? alpha(C.red, 0.5) : C.border}`, bgcolor: isCorrect ? alpha(C.green, 0.06) : isWrong ? alpha(C.red, 0.06) : 'rgba(255,255,255,0.02)' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
+                <Box onClick={() => moveUp(i)} sx={{ cursor: i === 0 || checked ? 'default' : 'pointer', opacity: i === 0 || checked ? 0.2 : 0.6, fontSize: '0.7rem', lineHeight: 1, '&:hover': { opacity: 1 } }}>▲</Box>
+                <Box onClick={() => moveDown(i)} sx={{ cursor: i === order.length-1 || checked ? 'default' : 'pointer', opacity: i === order.length-1 || checked ? 0.2 : 0.6, fontSize: '0.7rem', lineHeight: 1, '&:hover': { opacity: 1 } }}>▼</Box>
+              </Box>
+              <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: alpha(color, 0.15), border: `1px solid ${alpha(color, 0.3)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: color }}>{i+1}</Typography>
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontSize: '0.85rem', color: isCorrect ? C.green : isWrong ? C.red : C.text }}>{ev?.label}</Typography>
+                {ev?.year && <Typography sx={{ fontSize: '0.72rem', color: C.muted }}>{ev.year}</Typography>}
+              </Box>
+              {isCorrect && <FiCheck size={14} color={C.green}/>}
+              {isWrong   && <FiX size={14} color={C.red}/>}
+            </Box>
+          )
+        })}
+      </Box>
+      {!checked ? (
+        <Button onClick={check} variant="contained"
+          sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) } }}>
+          Verificar orden
+        </Button>
+      ) : (
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Box sx={{ px: 2, py: 1.25, flex: 1, bgcolor: JSON.stringify(order) === JSON.stringify(correct) ? alpha(C.green, 0.08) : alpha(C.yellow, 0.08), border: `1px solid ${JSON.stringify(order) === JSON.stringify(correct) ? alpha(C.green, 0.3) : alpha(C.yellow, 0.3)}`, borderRadius: '10px' }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: JSON.stringify(order) === JSON.stringify(correct) ? C.green : C.yellow }}>
+              {JSON.stringify(order) === JSON.stringify(correct) ? '✅ ¡Orden correcto!' : 'Orden incorrecto — intenta de nuevo'}
+            </Typography>
+          </Box>
+          {JSON.stringify(order) !== JSON.stringify(correct) && (
+            <Button onClick={() => { setOrder(events.map((e:any) => e.id)); setChecked(false) }} size="small" startIcon={<MdOutlineAutorenew size={14}/>} sx={{ color: C.muted, textTransform: 'none', '&:hover': { color: C.text } }}>Reintentar</Button>
+          )}
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Decision eval ───────────────────────────────────────────
+function DecisionEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const options: any[] = data.options ?? []
+  const [selected, setSelected] = useState<string | null>(null)
+  const [revealed, setRevealed] = useState(false)
+
+  const handleSelect = (id: string) => {
+    if (revealed) return
+    setSelected(id)
+    setRevealed(true)
+    const opt = options.find((o:any) => o.id === id)
+    if (opt?.correct) setTimeout(onComplete, 1200)
+  }
+
+  return (
+    <Box>
+      <Box sx={{ px: 2.5, py: 2, bgcolor: alpha(color, 0.06), border: `1px solid ${alpha(color, 0.2)}`, borderRadius: '12px', mb: 3 }}>
+        <Typography sx={{ fontSize: '0.9rem', fontWeight: 600, color: C.text, lineHeight: 1.6 }}>
+          📋 {data.scenario}
+        </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {options.map((opt: any) => {
+          const isSel = selected === opt.id
+          const isCorrect = revealed && opt.correct
+          const isWrong   = revealed && isSel && !opt.correct
+          return (
+            <Box key={opt.id} onClick={() => handleSelect(opt.id)}
+              sx={{ px: 2, py: 1.5, borderRadius: '10px', cursor: revealed ? 'default' : 'pointer', transition: 'all 0.2s',
+                border: `1px solid ${isCorrect ? alpha(C.green, 0.5) : isWrong ? alpha(C.red, 0.5) : isSel ? alpha(color, 0.5) : C.border}`,
+                bgcolor: isCorrect ? alpha(C.green, 0.06) : isWrong ? alpha(C.red, 0.06) : isSel ? alpha(color, 0.06) : 'transparent',
+                '&:hover': { bgcolor: revealed ? undefined : 'rgba(255,255,255,0.04)' } }}>
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 500, color: isCorrect ? C.green : isWrong ? C.red : C.text, mb: revealed && isSel ? 0.5 : 0 }}>
+                {opt.label}
+              </Typography>
+              {revealed && isSel && opt.outcome && (
+                <Typography sx={{ fontSize: '0.78rem', color: opt.correct ? C.green : alpha(C.red, 0.8), lineHeight: 1.5 }}>
+                  {opt.outcome}
+                </Typography>
+              )}
+              {revealed && isCorrect && !isSel && (
+                <Typography sx={{ fontSize: '0.75rem', color: C.green, mt: 0.25 }}>✅ Esta era la mejor opción</Typography>
+              )}
+            </Box>
+          )
+        })}
+      </Box>
+    </Box>
+  )
+}
+
+// ─── Survey eval ─────────────────────────────────────────────
+function SurveyEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const questions: any[] = data.questions ?? []
+  const [answers, setAnswers] = useState<Record<string, string | number>>({})
+  const [submitted, setSubmitted] = useState(false)
+
+  const allAnswered = questions.every(q => answers[q.id] !== undefined && answers[q.id] !== '')
+
+  const handleSubmit = () => {
+    setSubmitted(true)
+    setTimeout(onComplete, 600)
+  }
+
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {questions.map((q: any) => (
+        <Box key={q.id}>
+          <Typography sx={{ fontSize: '0.88rem', fontWeight: 600, color: C.text, mb: 1.5, lineHeight: 1.6 }}>{q.q}</Typography>
+          {q.type === 'scale' ? (
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {[1,2,3,4,5].map(n => (
+                <Box key={n} onClick={() => !submitted && setAnswers(p => ({ ...p, [q.id]: n }))}
+                  sx={{ width: 40, height: 40, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: submitted ? 'default' : 'pointer',
+                    border: `1px solid ${answers[q.id] === n ? alpha(color, 0.6) : C.border}`,
+                    bgcolor: answers[q.id] === n ? alpha(color, 0.12) : 'transparent',
+                    color: answers[q.id] === n ? color : C.muted,
+                    fontWeight: answers[q.id] === n ? 700 : 400, fontSize: '0.88rem',
+                    transition: 'all 0.15s', '&:hover': { bgcolor: submitted ? undefined : 'rgba(255,255,255,0.04)' } }}>
+                  {n}
+                </Box>
+              ))}
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, ml: 1 }}>
+                <Typography sx={{ fontSize: '0.7rem', color: C.muted }}>Difícil</Typography>
+                <Typography sx={{ fontSize: '0.7rem', color: C.muted }}>→</Typography>
+                <Typography sx={{ fontSize: '0.7rem', color: C.muted }}>Fácil</Typography>
+              </Box>
+            </Box>
+          ) : (
+            <Box component="textarea" rows={3}
+              value={answers[q.id] as string ?? ''}
+              onChange={(e: any) => !submitted && setAnswers(p => ({ ...p, [q.id]: e.target.value }))}
+              placeholder="Escribe tu reflexión aquí..."
+              sx={{ width: '100%', p: 1.5, bgcolor: 'rgba(255,255,255,0.04)', border: `1px solid ${C.border}`, borderRadius: '10px', color: C.text, fontSize: '0.85rem', fontFamily: 'inherit', outline: 'none', resize: 'none', '&:focus': { borderColor: alpha(color, 0.5) } }}
+            />
+          )}
+        </Box>
+      ))}
+      {!submitted ? (
+        <Button onClick={handleSubmit} disabled={!allAnswered} variant="contained"
+          sx={{ alignSelf: 'flex-start', bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.25), color: 'rgba(255,255,255,0.3)' } }}>
+          Enviar reflexión
+        </Button>
+      ) : (
+        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.3)}`, borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: C.green }}>✅ ¡Gracias por tu reflexión!</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Challenge eval ───────────────────────────────────────────
+function ChallengeEval({ data, color, code, setCode, onComplete }: { data: any; color: string; code: string; setCode: (c: string) => void; onComplete: (code: string) => void }) {
+  const [submitted, setSubmitted] = useState(false)
+
+  return (
+    <Box>
+      {data.description && (
+        <Box sx={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'rgba(255,255,255,0.75)', mb: 2,
+          '& p': { mb: 1.5 }, '& ol,& ul': { pl: 2.5 }, '& li': { mb: 0.5 },
+          '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.6, borderRadius: '4px', fontFamily: 'Fira Code, monospace', fontSize: '0.8rem', color: '#79c0ff' },
+        }} dangerouslySetInnerHTML={{ __html: data.description }}/>
+      )}
+      <Box sx={{ border: `1px solid ${C.border}`, borderRadius: '12px', overflow: 'hidden', height: 280, mb: 2 }}>
+        <Box sx={{ px: 2, py: 0.75, borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', gap: 1, bgcolor: '#0d0f14' }}>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            {['#EF4444','#F59E0B','#22C55E'].map(c => <Box key={c} sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: c }}/>)}
+          </Box>
+          <Typography sx={{ fontSize: '0.7rem', color: C.muted, ml: 0.5, fontFamily: '"Fira Code", monospace' }}>solution.js</Typography>
+        </Box>
+        <Box sx={{ height: 'calc(100% - 32px)', '& .cm-editor': { height: '100%' } }}>
+          <CodeEditor code={code} onChange={setCode} lang="javascript"/>
+        </Box>
+      </Box>
+      {!submitted ? (
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Button onClick={() => { setSubmitted(true); onComplete(code) }} variant="contained" disabled={!code.trim() || code === data.starterCode}
+            sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.25), color: 'rgba(255,255,255,0.3)' } }}>
+            Entregar reto
+          </Button>
+          <Typography sx={{ fontSize: '0.75rem', color: C.muted }}>No hay tests automáticos — tú decides si tu solución es correcta</Typography>
+        </Box>
+      ) : (
+        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.3)}`, borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: C.green }}>🚀 ¡Reto entregado!</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Mindmap eval ─────────────────────────────────────────────
+function MindmapEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const nodes: any[] = data.nodes ?? []
+  const [connected, setConnected] = useState<Set<string>>(new Set())
+  const [selected, setSelected]   = useState<string | null>(null)
+  const [done, setDone]           = useState(false)
+
+  const allConnected = nodes.every((n: any) => connected.has(n.id))
+
+  const handleNode = (id: string) => {
+    if (done) return
+    if (selected === id) { setSelected(null); return }
+    if (selected) {
+      setConnected(p => new Set([...p, selected, id]))
+      setSelected(null)
+      if (allConnected) { setDone(true); setTimeout(onComplete, 800) }
+    } else {
+      setSelected(id)
+    }
+  }
+
+  useEffect(() => {
+    if (connected.size > 0 && nodes.every((n:any) => connected.has(n.id))) {
+      setDone(true)
+      setTimeout(onComplete, 800)
+    }
+  }, [connected])
+
+  return (
+    <Box>
+      <Typography sx={{ fontSize: '0.82rem', color: C.muted, mb: 2 }}>
+        Conecta los nodos al tema central haciendo click en dos nodos seguidos
+      </Typography>
+      {/* Central */}
+      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+        <Box sx={{ px: 3, py: 1.5, bgcolor: alpha(color, 0.15), border: `2px solid ${color}`, borderRadius: '100px' }}>
+          <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: color }}>{data.central}</Typography>
+        </Box>
+      </Box>
+      {/* Nodes grid */}
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, justifyContent: 'center', mb: 2 }}>
+        {nodes.map((n: any) => {
+          const isConn = connected.has(n.id)
+          const isSel  = selected === n.id
+          return (
+            <Box key={n.id} onClick={() => handleNode(n.id)}
+              sx={{ px: 2, py: 1, borderRadius: '10px', cursor: done ? 'default' : 'pointer', transition: 'all 0.15s',
+                border: `1px solid ${isConn ? alpha(C.green, 0.5) : isSel ? alpha(color, 0.7) : C.border}`,
+                bgcolor: isConn ? alpha(C.green, 0.08) : isSel ? alpha(color, 0.1) : 'transparent',
+                color: isConn ? C.green : isSel ? color : C.text }}>
+              <Typography sx={{ fontSize: '0.82rem', fontWeight: isSel ? 700 : 400 }}>{n.label}</Typography>
+            </Box>
+          )
+        })}
+      </Box>
+      {done && (
+        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.3)}`, borderRadius: '10px', textAlign: 'center' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: C.green }}>🗺️ ¡Mapa mental completado!</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Replit eval ──────────────────────────────────────────────
+function ReplitEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const [confirmed, setConfirmed] = useState(false)
+
+  return (
+    <Box>
+      {data.description && (
+        <Box sx={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'rgba(255,255,255,0.75)', mb: 2,
+          '& p': { mb: 1.5 }, '& ol,& ul': { pl: 2.5 }, '& li': { mb: 0.5 },
+          '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.6, borderRadius: '4px', fontFamily: 'Fira Code, monospace', color: '#79c0ff' },
+        }} dangerouslySetInnerHTML={{ __html: data.description }}/>
+      )}
+      {data.replitUrl && (
+        <Box sx={{ border: `1px solid ${C.border}`, borderRadius: '12px', overflow: 'hidden', mb: 2 }}>
+          <Box sx={{ px: 2, py: 1, borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', bgcolor: '#0d0f14' }}>
+            <Typography sx={{ fontSize: '0.72rem', color: C.muted, fontFamily: '"Fira Code", monospace' }}>Replit Embed</Typography>
+            <Button component="a" href={data.replitUrl} target="_blank" size="small"
+              sx={{ fontSize: '0.7rem', color: color, textTransform: 'none', p: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}>
+              Abrir en Replit ↗
+            </Button>
+          </Box>
+          <Box component="iframe" src={data.replitUrl + '?embed=true'} sx={{ width: '100%', height: 320, border: 'none', display: 'block' }}/>
+        </Box>
+      )}
+      {!data.replitUrl && (
+        <Button component="a" href={data.replitUrl ?? data.repoUrl} target="_blank" variant="outlined"
+          sx={{ mb: 2, borderColor: alpha(color, 0.4), color: color, textTransform: 'none', fontWeight: 600, borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.08) } }}>
+          Abrir entorno externo ↗
+        </Button>
+      )}
+      {!confirmed ? (
+        <Button onClick={() => { setConfirmed(true); onComplete() }} variant="contained"
+          sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) } }}>
+          ✅ Completé el proyecto
+        </Button>
+      ) : (
+        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.3)}`, borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: C.green }}>🎉 ¡Proyecto completado!</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── GitHub eval ──────────────────────────────────────────────
+function GithubEval({ data, color, onComplete }: { data: any; color: string; onComplete: () => void }) {
+  const [confirmed, setConfirmed] = useState(false)
+
+  return (
+    <Box>
+      {data.description && (
+        <Box sx={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'rgba(255,255,255,0.75)', mb: 2,
+          '& p': { mb: 1.5 }, '& ol,& ul': { pl: 2.5 }, '& li': { mb: 0.5 },
+          '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.6, borderRadius: '4px', fontFamily: 'Fira Code, monospace', color: '#79c0ff' },
+        }} dangerouslySetInnerHTML={{ __html: data.description }}/>
+      )}
+      {data.instructions && (
+        <Box sx={{ fontSize: '0.82rem', lineHeight: 1.75, color: 'rgba(255,255,255,0.65)', mb: 2,
+          '& ol': { pl: 2.5 }, '& li': { mb: 0.5 },
+        }} dangerouslySetInnerHTML={{ __html: data.instructions }}/>
+      )}
+      <Button component="a" href={data.repoUrl} target="_blank" variant="outlined"
+        sx={{ mb: 2, mr: 1, borderColor: 'rgba(255,255,255,0.2)', color: C.text, textTransform: 'none', fontWeight: 600, borderRadius: '10px', '&:hover': { borderColor: color, color: color } }}>
+        🔗 Ir al repositorio
+      </Button>
+      {!confirmed ? (
+        <Button onClick={() => { setConfirmed(true); onComplete() }} variant="contained"
+          sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) } }}>
+          ✅ Completé el ejercicio
+        </Button>
+      ) : (
+        <Box sx={{ px: 2, py: 1.5, bgcolor: alpha(C.green, 0.08), border: `1px solid ${alpha(C.green, 0.3)}`, borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: C.green }}>✅ ¡Repositorio completado!</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+
+// ─── Main player ──────────────────────────────────────────────
+export function SubseccionPlayer({
+  course, block, topic, lesson, subsection, prev, next,
+  userId, savedCode, completed: initCompleted, totalSubs, completedSubs,
+}: Props) {
+  const router  = useRouter()
+  const color   = course.color
+  const evalType = subsection.evalType as EvalType
+  const isLab   = evalType === 'lab'
+
+  const [step,       setStep]      = useState<Step>('theory')
+  const [theoryDone, setTheoryDone] = useState(initCompleted)
+  const [completed,  setCompleted] = useState(initCompleted)
+  const [code,       setCode]      = useState(savedCode ?? subsection.evalData?.starterCode ?? '')
+  const [saving,     setSaving]    = useState(false)
+  const [showHint,   setShowHint]  = useState(false)
+  const [localDone,  setLocalDone] = useState(completedSubs)
+  const [alertPct,   setAlertPct]  = useState(0)
+  const [showAlert,  setShowAlert] = useState(false)
+
+  const pct = totalSubs > 0 ? Math.round((localDone / totalSubs) * 100) : 0
+
+  const saveProgress = useCallback(async (isCompleted: boolean, codeToSave?: string) => {
+    setSaving(true)
+    try {
+      await fetch('/api/universidad/progress', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subsectionId: subsection.id, courseId: subsection.courseId, completed: isCompleted, code: codeToSave ?? code }),
+      })
+      if (isCompleted && !completed) {
+        setCompleted(true)
+        const newDone = Math.min(completedSubs + 1, totalSubs)
+        setLocalDone(newDone)
+        setAlertPct(totalSubs > 0 ? Math.round((newDone / totalSubs) * 100) : 0)
+        setShowAlert(true)
+        setTimeout(() => setShowAlert(false), 4500)
+        router.refresh()
+      }
+    } finally { setSaving(false) }
+  }, [code, subsection.id, subsection.courseId, completed, completedSubs, totalSubs, router])
+
+  const handleTheoryDone = () => {
+    setTheoryDone(true)
+    setStep('exercise')
+  }
+
+  const goNext = () => {
+    if (next) router.push(`/universidad/${course.slug}/${next.id}`)
+    else router.push(`/universidad/${course.slug}`)
+  }
+
+  return (
+    <Box sx={{ bgcolor: C.bg, height: '100vh', display: 'flex', flexDirection: 'column', color: C.text, overflow: 'hidden' }}>
+
+      {/* ── Alerta de progreso ── */}
+      <AnimatePresence>
+        {showAlert && (
+          <Box component={motion.div}
+            initial={{ opacity: 0, y: -80 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -80 }}
+            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+            sx={{ position: 'fixed', top: 16, left: '50%', transform: 'translateX(-50%)', zIndex: 9999, width: { xs: 'calc(100vw - 32px)', sm: 420 }, bgcolor: '#13161D', border: `1px solid ${alpha(color, 0.4)}`, borderRadius: '16px', boxShadow: `0 8px 32px rgba(0,0,0,0.5)`, overflow: 'hidden' }}>
+            <Box sx={{ height: 3, bgcolor: 'rgba(255,255,255,0.05)' }}>
+              <Box component={motion.div} initial={{ width: 0 }} animate={{ width: `${alertPct}%` }} transition={{ duration: 0.8, ease: 'easeOut', delay: 0.2 }} sx={{ height: '100%', bgcolor: color, borderRadius: 2 }}/>
+            </Box>
+            <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Box sx={{ width: 40, height: 40, borderRadius: '12px', bgcolor: alpha(color, 0.15), border: `1px solid ${alpha(color, 0.3)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.25rem' }}>
+                {alertPct === 100 ? '🎓' : '✅'}
+              </Box>
+              <Box sx={{ flex: 1 }}>
+                <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#fff', mb: 0.25 }}>{alertPct === 100 ? '¡Curso completado!' : '¡Subsección completada!'}</Typography>
+                <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>{alertPct === 100 ? '¡Obtuviste tu certificado!' : `${alertPct}% del curso completado`}</Typography>
+              </Box>
+              <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '1.4rem', color: color, lineHeight: 1 }}>{alertPct}%</Typography>
+                <Typography sx={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.3)', mt: 0.25 }}>completado</Typography>
+              </Box>
+            </Box>
+          </Box>
+        )}
+      </AnimatePresence>
+
+      {/* ── Top bar ── */}
+      <Box sx={{ borderBottom: `1px solid ${C.border}`, px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0, minHeight: 48 }}>
+        <Box component={Link} href={`/universidad/${course.slug}`}
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: C.muted, textDecoration: 'none', flexShrink: 0, '&:hover': { color: C.text }, transition: 'color 0.15s' }}>
+          <FiArrowLeft size={14}/><Typography sx={{ fontSize: '0.78rem' }}>{course.title?.es}</Typography>
+        </Box>
+        <Box sx={{ width: 1, height: 14, bgcolor: C.border, flexShrink: 0 }}/>
+        <Typography sx={{ fontSize: '0.78rem', color: C.muted, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {block?.title?.es} › {topic?.title?.es} › {lesson?.title?.es} › {subsection.title?.es}
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+          <Box sx={{ width: 80, display: { xs: 'none', md: 'block' } }}>
+            <LinearProgress variant="determinate" value={pct} sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 2 } }}/>
+          </Box>
+          <Typography sx={{ fontSize: '0.72rem', color: C.muted, flexShrink: 0 }}>{pct}%</Typography>
+        </Box>
+        {completed && <Chip icon={<FiCheck size={10}/>} label="Completada" size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700, bgcolor: alpha(C.green, 0.1), color: C.green, border: `1px solid ${alpha(C.green, 0.3)}`, '& .MuiChip-icon': { color: `${C.green} !important`, ml: '5px' } }}/>}
+        {saving && <CircularProgress size={12} sx={{ color: C.muted, flexShrink: 0 }}/>}
+        <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
+          <Button size="small" disabled={!prev} onClick={() => prev && router.push(`/universidad/${course.slug}/${prev.id}`)} sx={{ minWidth: 0, px: 0.75, color: C.muted, '&:hover': { color: C.text }, '&.Mui-disabled': { opacity: 0.25 } }}><FiChevronLeft size={15}/></Button>
+          <Button size="small" disabled={!next} onClick={() => next && router.push(`/universidad/${course.slug}/${next.id}`)} sx={{ minWidth: 0, px: 0.75, color: C.muted, '&:hover': { color: C.text }, '&.Mui-disabled': { opacity: 0.25 } }}><FiChevronRight size={15}/></Button>
+        </Box>
+      </Box>
+
+      {/* ── Tabs ── */}
+      <Box sx={{ display: 'flex', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
+        {(['theory', 'exercise'] as Step[]).map(s => {
+          const active = step === s
+          const done   = s === 'theory' ? theoryDone : completed
+          const label  = s === 'theory' ? 'Teoría' : isLab ? 'Lab' : 'Ejercicio'
+          const Icon   = s === 'theory' ? FiBookOpen : FiCode
+          return (
+            <Box key={s} onClick={() => (s === 'theory' || theoryDone) && setStep(s)}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2.5, py: 1.25, cursor: (s === 'exercise' && !theoryDone) ? 'not-allowed' : 'pointer', borderBottom: `2px solid ${active ? color : 'transparent'}`, color: active ? color : done ? C.muted : 'rgba(255,255,255,0.25)', transition: 'all 0.15s', opacity: (s === 'exercise' && !theoryDone) ? 0.4 : 1 }}>
+              <Icon size={13}/>
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: active ? 700 : 400 }}>{label}</Typography>
+              {done && <FiCheck size={11} color={C.green}/>}
+            </Box>
+          )
+        })}
+        {/* Botón de ayuda */}
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', pr: 2 }}>
+          <Button size="small" startIcon={<FiHelpCircle size={13}/>}
+            onClick={() => setShowHint(h => !h)}
+            sx={{ fontSize: '0.75rem', color: showHint ? color : C.muted, textTransform: 'none', '&:hover': { color: color } }}>
+            {showHint ? 'Ocultar pista' : 'Pista'}
+          </Button>
+        </Box>
+      </Box>
+
+      {/* ── Hint ── */}
+      <AnimatePresence>
+        {showHint && subsection.hint?.es && (
+          <Box component={motion.div} initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }}
+            sx={{ bgcolor: alpha(C.yellow, 0.08), borderBottom: `1px solid ${alpha(C.yellow, 0.2)}`, px: 3, py: 1.5, flexShrink: 0, overflow: 'hidden' }}>
+            <Typography sx={{ fontSize: '0.82rem', color: C.yellow, lineHeight: 1.6 }}>
+              💡 {subsection.hint.es}
+            </Typography>
+          </Box>
+        )}
+      </AnimatePresence>
+
+      {/* ── Content ── */}
+      <Box sx={{ flex: 1, overflowY: 'auto', px: 3, py: 3, scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}>
+
+        {/* Theory */}
+        {step === 'theory' && (
+          <>
+            <Typography sx={{ fontFamily: 'Poppins, sans-serif', fontWeight: 800, fontSize: '1.15rem', mb: 0.5 }}>{subsection.title?.es}</Typography>
+            {subsection.theory?.es ? (
+              <Box sx={{ mt: 2, fontSize: '0.88rem', lineHeight: 1.85, color: 'rgba(255,255,255,0.82)',
+                '& h2': { fontSize: '1rem', fontWeight: 700, color: C.text, mt: 3, mb: 1, borderBottom: `1px solid ${C.border}`, pb: 0.5 },
+                '& h3': { fontSize: '0.9rem', fontWeight: 700, color: C.text, mt: 2.5, mb: 0.75 },
+                '& p':  { mb: 1.5 },
+                '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.75, py: 0.2, borderRadius: '4px', fontFamily: '"Fira Code", monospace', fontSize: '0.82rem', color: '#79c0ff' },
+                '& pre': { bgcolor: '#161b22', border: `1px solid ${C.border}`, borderRadius: '10px', p: 2, overflow: 'auto', mb: 2, mt: 1, '& code': { bgcolor: 'transparent', p: 0, color: '#e6edf3' } },
+                '& ul,& ol': { pl: 2.5, mb: 1.5 }, '& li': { mb: 0.5 },
+                '& strong': { color: C.text, fontWeight: 700 },
+                '& blockquote': { borderLeft: `3px solid ${color}`, pl: 2, color: C.muted, fontStyle: 'italic', my: 2, mx: 0 },
+                '& table': { width: '100%', borderCollapse: 'collapse', mb: 2 },
+                '& th,& td': { padding: '8px', borderBottom: `1px solid ${C.border}`, fontSize: '0.85rem' },
+                '& th': { color: C.text, fontWeight: 600 }, '& td': { color: C.muted },
+              }} dangerouslySetInnerHTML={{ __html: subsection.theory.es }}/>
+            ) : (
+              <Typography sx={{ color: C.muted, mt: 2, fontSize: '0.88rem' }}>Lee el contenido y pasa al ejercicio.</Typography>
+            )}
+          </>
+        )}
+
+        {/* Exercise */}
+        {step === 'exercise' && (
+          <Box>
+            <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, fontSize: '1rem', mb: 0.5 }}>
+              {{'quiz':'Cuestionario','lab':'Lab','challenge':'Reto abierto','flashcard':'Flashcards','cloze':'Completa los huecos','drag_drop':'Arrastra y suelta','timeline':'Línea de tiempo','decision':'Escenario','survey':'Reflexión','mindmap':'Mapa mental','replit':'Proyecto Replit','github':'Repositorio GitHub'}[evalType] ?? 'Ejercicio'}
+            </Typography>
+            <Typography sx={{ fontSize: '0.78rem', color: C.muted, mb: 3 }}>
+              {evalType === 'quiz' ? 'Responde correctamente para completar.' : evalType === 'lab' ? 'Escribe el código y corre los tests.' : evalType === 'flashcard' ? 'Repasa las tarjetas hasta dominarlas.' : 'Completa el ejercicio para continuar.'}
+            </Typography>
+
+            {evalType === 'quiz'     && <QuizEval      data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'cloze'    && <ClozeEval     data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'flashcard'&& <FlashcardEval data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'drag_drop'&& <DragDropEval  data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'timeline' && <TimelineEval  data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'decision' && <DecisionEval  data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'survey'   && <SurveyEval    data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'mindmap'  && <MindmapEval   data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'lab'      && <LabEval       data={subsection.evalData} color={color} code={code} setCode={setCode} onComplete={(c) => saveProgress(true, c)}/>}
+            {evalType === 'challenge'&& <ChallengeEval data={subsection.evalData} color={color} code={code} setCode={setCode} onComplete={(c) => saveProgress(true, c)}/>}
+            {evalType === 'replit'   && <ReplitEval    data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+            {evalType === 'github'   && <GithubEval    data={subsection.evalData} color={color} onComplete={() => saveProgress(true)}/>}
+          </Box>
+        )}
+      </Box>
+
+      {/* ── Footer ── */}
+      <Box sx={{ borderTop: `1px solid ${C.border}`, px: 3, py: 1.75, display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+        {step === 'theory' && !theoryDone && (
+          <Button variant="contained" onClick={handleTheoryDone}
+            sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '9px', fontSize: '0.82rem', '&:hover': { bgcolor: alpha(color, 0.85) } }}>
+            Ir al ejercicio →
+          </Button>
+        )}
+        {step === 'theory' && theoryDone && (
+          <Button variant="contained" onClick={() => setStep('exercise')}
+            sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '9px', fontSize: '0.82rem', '&:hover': { bgcolor: alpha(color, 0.85) } }}>
+            Ver ejercicio →
+          </Button>
+        )}
+        <Box sx={{ flex: 1 }}/>
+        {completed && (
+          <Button variant="outlined" endIcon={<FiChevronRight size={13}/>} onClick={goNext}
+            sx={{ borderColor: alpha(color, 0.4), color: color, fontWeight: 700, textTransform: 'none', borderRadius: '9px', fontSize: '0.82rem', '&:hover': { bgcolor: alpha(color, 0.08), borderColor: color } }}>
+            {next ? 'Siguiente subsección' : 'Finalizar curso'}
+          </Button>
+        )}
+      </Box>
+    </Box>
+  )
+}

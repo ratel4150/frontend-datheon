@@ -12,6 +12,12 @@ import {
   FiChevronRight, FiCode, FiDollarSign, FiGrid,
   FiHeart, FiLayers, FiMenu, FiArrowRight, FiTool, FiX,
   FiCpu,
+  FiBox,
+  FiWifi,
+  FiDatabase,
+  FiCloud,
+  FiSmartphone,
+  FiZap,
 } from 'react-icons/fi'
 import { LanguageSwitcher } from './LanguageSwitcher'
 import { useEffect, useRef, useState } from 'react'
@@ -43,24 +49,156 @@ interface SubItem {
 
 const servicesData: Record<Lang, SubItem[]> = {
   es: [
-    { label: 'Consultoría TI',    path: '/servicios/consultoria',       description: 'Estrategia y arquitectura tecnológica',  icon: <FiBriefcase size={15}/> },
-    { label: 'Desarrollo Web',    path: '/servicios/desarrollo-web',    description: 'Apps web y móviles a medida',            icon: <FiCode size={15}/> },
-    { label: 'Soporte Técnico',   path: '/servicios/soporte',           description: 'Asistencia especializada continua',      icon: <FiTool size={15}/> },
-    { label: 'Agentes Autónomos', path: '/servicios/agentes-autonomos', description: 'Automatización con agentes de IA',       icon: <FiCpu size={15}/> },
+    {
+      label: 'AI SaaS & Agentes Autónomos',
+      path: '/servicios/ai-saas-agentes-autonomos',
+      description: 'Construimos productos SaaS potenciados por IA y agentes que ejecutan tareas completas sin intervención humana.',
+      icon: <FiCpu size={20} />,
+    },
+    {
+      label: 'Automatización & Lead Systems',
+      path: '/servicios/automatizacion-lead-systems',
+      description: 'Sistemas que capturan, califican y convierten leads de forma automática, más flujos RPA que eliminan trabajo manual.',
+      icon: <FiZap size={20} />,
+    },
+    {
+      label: 'SaaS / Web Apps & E-commerce',
+      path: '/servicios/saas-web-apps-e-commerce',
+      description: 'Aplicaciones web fullstack de alto rendimiento, desde MVPs hasta plataformas con millones de usuarios.',
+      icon: <FiLayers size={20} />,
+    },
+    {
+      label: 'Mobile Apps & Backend',
+      path: '/servicios/mobile-apps-backend',
+      description: 'Apps móviles nativas y multiplataforma conectadas a backends robustos y escalables.',
+      icon: <FiSmartphone size={20} />,
+    },
+    {
+      label: 'Cloud, DevOps & Infraestructura',
+      path: '/servicios/cloud-devops',
+      description: 'Infraestructura cloud escalable, segura y gestionada como código para que tu producto nunca se caiga.',
+      icon: <FiCloud size={20} />,
+    },
+    {
+      label: 'Data, Analytics & AI Systems',
+      path: '/servicios/data-analytics-ai-systems',
+      description: 'Arquitecturas de datos que convierten información cruda en decisiones de negocio en tiempo real.',
+      icon: <FiDatabase size={20} />,
+    },
+    {
+      label: 'IoT: Hardware + Software + SaaS',
+      path: '/servicios/iot-hardware-software-saas',
+      description: 'Conectamos dispositivos físicos al mundo digital: desde el firmware hasta el dashboard en la nube.',
+      icon: <FiWifi size={20} />,
+    },
+    {
+      label: 'Odoo ERP & Transformación Digital',
+      path: '/servicios/odoo-erp-transformacion-digital',
+      description: 'Implementamos, personalizamos y conectamos Odoo con el resto de tu stack tecnológico.',
+      icon: <FiBox size={20} />,
+    },
   ],
   en: [
-    { label: 'IT Consulting',     path: '/services/consulting',         description: 'Technology strategy and architecture',   icon: <FiBriefcase size={15}/> },
-    { label: 'Web Development',   path: '/services/web-development',    description: 'Custom web and mobile applications',     icon: <FiCode size={15}/> },
-    { label: 'Technical Support', path: '/services/support',            description: 'Specialized ongoing assistance',         icon: <FiTool size={15}/> },
-    { label: 'Autonomous Agents', path: '/services/autonomous-agents',  description: 'AI-powered workflow automation',         icon: <FiCpu size={15}/> },
+    {
+      label: 'AI SaaS & Autonomous Agents',
+      path: '/services/ai-saas-autonomous-agents',
+      description: 'We build AI-powered SaaS products and agents that execute complete tasks without human intervention.',
+      icon: <FiCpu size={20} />,
+    },
+    {
+      label: 'Automation & Lead Systems',
+      path: '/services/automation-lead-systems',
+      description: 'Systems that automatically capture, qualify and convert leads, plus RPA flows that eliminate manual work.',
+      icon: <FiZap size={20} />,
+    },
+    {
+      label: 'SaaS / Web Apps & E-commerce',
+      path: '/services/saas-web-apps-e-commerce',
+      description: 'High-performance fullstack web applications, from MVPs to platforms serving millions of users.',
+      icon: <FiLayers size={20} />,
+    },
+    {
+      label: 'Mobile Apps & Backend',
+      path: '/services/mobile-apps-backend',
+      description: 'Native and cross-platform mobile apps connected to robust and scalable backends.',
+      icon: <FiSmartphone size={20} />,
+    },
+    {
+      label: 'Cloud, DevOps & Infrastructure',
+      path: '/services/cloud-devops-infrastructure',
+      description: 'Scalable, secure cloud infrastructure managed as code so your product never goes down.',
+      icon: <FiCloud size={20} />,
+    },
+    {
+      label: 'Data, Analytics & AI Systems',
+      path: '/services/data-analytics-ai-systems',
+      description: 'Data architectures that turn raw information into business decisions in real time.',
+      icon: <FiDatabase size={20} />,
+    },
+    {
+      label: 'IoT: Hardware + Software + SaaS',
+      path: '/services/iot-hardware-software-saas',
+      description: 'We connect physical devices to the digital world: from firmware to cloud dashboard.',
+      icon: <FiWifi size={20} />,
+    },
+    {
+      label: 'Odoo ERP & Digital Transformation',
+      path: '/services/odoo-erp-digital-transformation',
+      description: 'We implement, customize and connect Odoo with the rest of your technology stack.',
+      icon: <FiBox size={20} />,
+    },
   ],
   fr: [
-    { label: 'Consultance IT',    path: '/services/consultance',        description: 'Stratégie et architecture technologique', icon: <FiBriefcase size={15}/> },
-    { label: 'Développement Web', path: '/services/developpement-web',  description: 'Applications web et mobiles sur mesure',  icon: <FiCode size={15}/> },
-    { label: 'Support Technique', path: '/services/support',            description: 'Assistance spécialisée continue',          icon: <FiTool size={15}/> },
-    { label: 'Agents Autonomes',  path: '/services/agents-autonomes',   description: 'Automatisation avec des agents IA',        icon: <FiCpu size={15}/> },
+    {
+      label: 'IA SaaS & Agents Autonomes',
+      path: '/services/ia-saas-agents-autonomes',
+      description: 'Nous construisons des produits SaaS alimentés par IA et des agents qui exécutent des tâches complètes sans intervention humaine.',
+      icon: <FiCpu size={20} />,
+    },
+    {
+      label: 'Automatisation & Systèmes de Leads',
+      path: '/services/automatisation-systemes-de-leads',
+      description: 'Systèmes qui capturent, qualifient et convertissent les leads automatiquement, plus des flux RPA qui éliminent le travail manuel.',
+      icon: <FiZap size={20} />,
+    },
+    {
+      label: 'SaaS / Web Apps & E-commerce',
+      path: '/services/saas-web-apps-e-commerce',
+      description: 'Applications web fullstack haute performance, du MVP aux plateformes avec des millions d\'utilisateurs.',
+      icon: <FiLayers size={20} />,
+    },
+    {
+      label: 'Applications Mobiles & Backend',
+      path: '/services/applications-mobiles-backend',
+      description: 'Applications mobiles natives et multiplateformes connectées à des backends robustes et évolutifs.',
+      icon: <FiSmartphone size={20} />,
+    },
+    {
+      label: 'Cloud, DevOps & Infrastructure',
+      path: '/services/cloud-devops-infrastructure',
+      description: 'Infrastructure cloud évolutive et sécurisée gérée en code pour que votre produit ne tombe jamais.',
+      icon: <FiCloud size={20} />,
+    },
+    {
+      label: 'Data, Analytics & Systèmes IA',
+      path: '/services/data-analytics-systemes-ia',
+      description: 'Architectures de données qui transforment les informations brutes en décisions métier en temps réel.',
+      icon: <FiDatabase size={20} />,
+    },
+    {
+      label: 'IoT : Hardware + Software + SaaS',
+      path: '/services/iot-hardware-software-saas',
+      description: 'Nous connectons des appareils physiques au monde numérique : du firmware au tableau de bord cloud.',
+      icon: <FiWifi size={20} />,
+    },
+    {
+      label: 'Odoo ERP & Transformation Digitale',
+      path: '/services/odoo-erp-transformation-digitale',
+      description: 'Nous implémentons, personnalisons et connectons Odoo avec le reste de votre stack technologique.',
+      icon: <FiBox size={20} />,
+    },
   ],
-}
+};
 
 const sectorsData: Record<Lang, SubItem[]> = {
   es: [
@@ -96,78 +234,158 @@ const tx = (key: keyof typeof t, lang: string) =>
 function DropdownMenu({ items, viewAllPath, viewAllLabel, open }: {
   items: SubItem[]; viewAllPath: string; viewAllLabel: string; open: boolean
 }) {
+  const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+  const isWide = items.length > 4
+
   return (
     <AnimatePresence>
       {open && (
         <Box
           component={motion.div}
-          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+          initial={{ opacity: 0, y: -8, scale: 0.97 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -6, scale: 0.98 }}
-          transition={{ duration: 0.16, ease: 'easeOut' }}
+          exit={{ opacity: 0, y: -8, scale: 0.97 }}
+          transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
           sx={{
-            position: 'absolute', top: 'calc(100% + 10px)', left: 0,
-            width: 300, bgcolor: C.bg,
-            border: `1px solid ${C.border}`, borderRadius: '14px',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.10)', overflow: 'hidden', zIndex: 1400,
-            '&::before': {
-              content: '""', position: 'absolute', top: 0, left: 0, right: 0,
-              height: '2px', bgcolor: C.accent,
-            },
+            position: 'absolute',
+            top: 'calc(100% + 12px)',
+            left: isWide ? '50%' : 0,
+            transform: isWide ? 'translateX(-50%)' : 'none',
+            width: isWide ? 560 : 320,
+            bgcolor: C.bg,
+            border: `1px solid ${C.border}`,
+            borderRadius: '18px',
+            boxShadow: '0 4px 6px -1px rgba(0,0,0,0.04), 0 24px 48px -8px rgba(0,0,0,0.12)',
+            overflow: 'hidden',
+            zIndex: 1400,
           }}
         >
-          <Box sx={{ pt: 1.5, px: 1 }}>
-            {items.map((item) => (
-              <Link key={item.path} href={item.path} style={{ textDecoration: 'none' }}>
-                <Box sx={{
-                  display: 'flex', alignItems: 'center', gap: 1.5,
-                  px: 1.5, py: 1.25, borderRadius: '10px', cursor: 'pointer',
-                  transition: 'all 0.15s ease', mb: 0.25,
-                  '&:hover': {
-                    bgcolor: C.accentBg,
-                    '& .item-icon': { bgcolor: C.accent, color: '#fff' },
-                    '& .item-title': { color: C.accent },
-                    '& .item-arrow': { opacity: 1, transform: 'translateX(2px)' },
-                  },
-                }}>
-                  <Box className="item-icon" sx={{
-                    width: 34, height: 34, borderRadius: '9px',
-                    bgcolor: C.accentBg, color: C.accent,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    flexShrink: 0, transition: 'all 0.15s ease',
-                  }}>
-                    {item.icon}
+          {/* Top accent bar */}
+          <Box sx={{
+            height: '2.5px',
+            background: `linear-gradient(90deg, ${C.accent}, ${alpha(C.accent, 0.25)})`,
+          }}/>
+
+          {/* Items */}
+          <Box sx={{
+            display: 'grid',
+            gridTemplateColumns: isWide ? 'repeat(2, 1fr)' : '1fr',
+            p: 1.5, pb: 0,
+            gap: 0,
+          }}>
+            {items.map((item, idx) => {
+              const isHov = hoveredIdx === idx
+              return (
+                <Link key={item.path} href={item.path} style={{ textDecoration: 'none' }}>
+                  <Box
+                    component={motion.div}
+                    onMouseEnter={() => setHoveredIdx(idx)}
+                    onMouseLeave={() => setHoveredIdx(null)}
+                    animate={{
+                      // FIX: nunca animar desde/hacia 'transparent' — usar rgba con alpha 0
+                      backgroundColor: isHov ? alpha(C.accent, 0.07) : 'rgba(0,0,0,0)',
+                      scale: isHov ? 1.01 : 1,
+                    }}
+                    transition={{ duration: 0.13, ease: 'easeOut' }}
+                    sx={{
+                      display: 'flex', alignItems: 'center', gap: 1.5,
+                      px: 1.5, py: 1.25,
+                      borderRadius: '12px',
+                      cursor: 'pointer',
+                      mb: 0.25,
+                      position: 'relative', overflow: 'hidden',
+                    }}
+                  >
+                    {/* Icon */}
+                    <Box
+                      component={motion.div}
+                      animate={{
+                        backgroundColor: isHov ? C.accent : alpha(C.accent, 0.08),
+                        // FIX: color no es animable con motion en Box — usar sx condicional
+                      }}
+                      transition={{ duration: 0.13 }}
+                      sx={{
+                        width: 36, height: 36,
+                        borderRadius: '10px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                        color: isHov ? '#fff' : C.accent,
+                        transition: 'color 0.13s ease',
+                      }}
+                    >
+                      {item.icon}
+                    </Box>
+
+                    {/* Text */}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{
+                        fontSize: '0.875rem', fontWeight: 600,
+                        color: isHov ? C.accent : C.text,
+                        lineHeight: 1.3,
+                        transition: 'color 0.13s ease',
+                      }}>
+                        {item.label}
+                      </Typography>
+                      <Typography sx={{
+                        fontSize: '0.72rem', color: C.textMute,
+                        mt: 0.2, lineHeight: 1.35,
+                        overflow: 'hidden',
+                        display: '-webkit-box',
+                        WebkitLineClamp: 1,
+                        WebkitBoxOrient: 'vertical',
+                      }}>
+                        {item.description}
+                      </Typography>
+                    </Box>
+
+                    {/* Arrow */}
+                    <Box
+                      component={motion.div}
+                      animate={{
+                        opacity: isHov ? 1 : 0,
+                        x: isHov ? 0 : -4,
+                      }}
+                      transition={{ duration: 0.13 }}
+                      sx={{ color: C.accent, flexShrink: 0 }}
+                    >
+                      <FiChevronRight size={14}/>
+                    </Box>
                   </Box>
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography className="item-title" sx={{
-                      fontSize: '0.875rem', fontWeight: 600,
-                      color: C.text, lineHeight: 1.3, transition: 'color 0.15s',
-                    }}>
-                      {item.label}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: C.textMute, mt: 0.2, lineHeight: 1.3 }}>
-                      {item.description}
-                    </Typography>
-                  </Box>
-                  <Box className="item-arrow" sx={{ color: C.accent, opacity: 0, transition: 'all 0.15s ease', flexShrink: 0 }}>
-                    <FiChevronRight size={14}/>
-                  </Box>
-                </Box>
-              </Link>
-            ))}
+                </Link>
+              )
+            })}
           </Box>
-          <Divider sx={{ mx: 2, my: 1, borderColor: C.border }}/>
-          <Box sx={{ px: 2, pb: 1.5 }}>
+
+          {/* Footer */}
+          <Box sx={{ px: 1.5, pt: 0.75, pb: 1.5 }}>
+            <Divider sx={{ mb: 1, borderColor: C.border }}/>
             <Link href={viewAllPath} style={{ textDecoration: 'none' }}>
-              <Box sx={{
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.75,
-                py: 1, borderRadius: '8px', transition: 'all 0.15s ease',
-                '&:hover': { bgcolor: C.accentBg },
-              }}>
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: C.accent }}>
+              <Box
+                component={motion.div}
+                animate={{ backgroundColor: 'rgba(0,0,0,0)' }}
+                whileHover={{ backgroundColor: alpha(C.accent, 0.07) }}
+                transition={{ duration: 0.13 }}
+                sx={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  px: 1.5, py: 1,
+                  borderRadius: '10px',
+                  cursor: 'pointer',
+                }}
+              >
+                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: C.accent }}>
                   {viewAllLabel}
                 </Typography>
-                <FiArrowRight size={13} color={C.accent}/>
+                <Box sx={{
+                  display: 'flex', alignItems: 'center', gap: 0.5,
+                  bgcolor: alpha(C.accent, 0.1),
+                  borderRadius: '100px',
+                  px: 1, py: 0.4,
+                }}>
+                  <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: C.accent, lineHeight: 1 }}>
+                    {items.length}
+                  </Typography>
+                  <FiArrowRight size={11} color={C.accent}/>
+                </Box>
               </Box>
             </Link>
           </Box>
