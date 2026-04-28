@@ -1,4 +1,4 @@
-// File: frontend-datheon/src/app/universidad/[curso]/CursoClient.tsx
+// File: frontend-datheon/components/universidad/CursoClient.tsx
 'use client'
 
 import { Box, Typography, LinearProgress, alpha, Collapse } from '@mui/material'
@@ -21,7 +21,7 @@ interface Topic      { id: string; blockId: string; title: any; order: number }
 interface Lesson     { id: string; topicId: string; title: any; order: number }
 interface Subsection { id: string; lessonId: string; courseId: string; title: any; order: number; evalType: string }
 interface Course     { id: string; slug: string; title: any; description: any; icon: string; color: string }
-interface Cert       { id: string; courseId: string; issuedAt: Date | null }
+interface Cert       { id: string; courseId: string; issuedAt: string | Date | null }
 
 interface Props {
   course:      Course

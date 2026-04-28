@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/universidad/SubseccionPlayer.tsx
 'use client'
 
 import { useEffect, useRef, useState, useCallback } from 'react'
@@ -962,6 +963,22 @@ export function SubseccionPlayer({
 
   const pct = totalSubs > 0 ? Math.round((localDone / totalSubs) * 100) : 0
 
+  // ── Time tracking ──
+  const startTime = useRef<number>(Date.now())
+  useEffect(() => {
+    startTime.current = Date.now()
+    return () => {
+      const secs = Math.round((Date.now() - startTime.current) / 1000)
+      if (secs > 5) {
+        fetch('/api/universidad/analytics', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subsectionId: subsection.id, courseId: subsection.courseId, timeSpentSeconds: secs }),
+        }).catch(() => {})
+      }
+    }
+  }, [subsection.id])
+
   const saveProgress = useCallback(async (isCompleted: boolean, codeToSave?: string) => {
     setSaving(true)
     try {
@@ -1022,26 +1039,89 @@ export function SubseccionPlayer({
       </AnimatePresence>
 
       {/* ── Top bar ── */}
-      <Box sx={{ borderBottom: `1px solid ${C.border}`, px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 2, flexShrink: 0, minHeight: 48 }}>
+      <Box sx={{
+        borderBottom: `1px solid ${C.border}`,
+        px: 2.5, display: 'flex', alignItems: 'center', gap: 2,
+        flexShrink: 0, minHeight: 52,
+        bgcolor: 'rgba(6,8,16,0.85)', backdropFilter: 'blur(12px)',
+        position: 'relative', overflow: 'hidden',
+      }}>
+        {/* Progress glow bar at very bottom */}
+        <Box sx={{ position: 'absolute', bottom: 0, left: 0, height: 2, bgcolor: 'rgba(255,255,255,0.04)', width: '100%' }}>
+          <Box component={motion.div} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8, ease: 'easeOut' }}
+            sx={{ height: '100%', bgcolor: color, boxShadow: `0 0 8px ${color}` }}/>
+        </Box>
+
+        {/* Back button */}
         <Box component={Link} href={`/universidad/${course.slug}`}
-          sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: C.muted, textDecoration: 'none', flexShrink: 0, '&:hover': { color: C.text }, transition: 'color 0.15s' }}>
-          <FiArrowLeft size={14}/><Typography sx={{ fontSize: '0.78rem' }}>{course.title?.es}</Typography>
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.75, textDecoration: 'none', flexShrink: 0,
+            px: 1.25, py: 0.6, borderRadius: '8px',
+            border: `1px solid rgba(255,255,255,0.07)`,
+            bgcolor: 'rgba(255,255,255,0.03)',
+            color: C.muted, transition: 'all 0.15s',
+            '&:hover': { color: C.text, bgcolor: 'rgba(255,255,255,0.07)', borderColor: 'rgba(255,255,255,0.15)' },
+          }}>
+          <FiArrowLeft size={12}/>
+          <Typography sx={{ fontSize: '0.72rem', fontWeight: 500, lineHeight: 1 }}>{course.title?.es}</Typography>
         </Box>
-        <Box sx={{ width: 1, height: 14, bgcolor: C.border, flexShrink: 0 }}/>
-        <Typography sx={{ fontSize: '0.78rem', color: C.muted, flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {block?.title?.es} › {topic?.title?.es} › {lesson?.title?.es} › {subsection.title?.es}
-        </Typography>
+
+        {/* Divider */}
+        <Box sx={{ width: 1, height: 16, bgcolor: C.border, flexShrink: 0 }}/>
+
+        {/* Breadcrumb */}
+        <Box sx={{ flex: 1, minWidth: 0, display: 'flex', alignItems: 'center', gap: 0.5, overflow: 'hidden' }}>
+          {[block?.title?.es, topic?.title?.es, lesson?.title?.es].filter(Boolean).map((crumb, i) => (
+            <Box key={i} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: i < 2 ? 1 : 0, minWidth: 0, overflow: 'hidden' }}>
+              {i > 0 && <Typography sx={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.18)', flexShrink: 0 }}>›</Typography>}
+              <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.28)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{crumb}</Typography>
+            </Box>
+          ))}
+          {lesson?.title?.es && <Typography sx={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.18)', flexShrink: 0 }}>›</Typography>}
+          <Typography sx={{ fontSize: '0.72rem', fontWeight: 600, color: C.muted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flexShrink: 0, maxWidth: { xs: 120, md: 260 } }}>
+            {subsection.title?.es}
+          </Typography>
+        </Box>
+
+        {/* Right side */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
-          <Box sx={{ width: 80, display: { xs: 'none', md: 'block' } }}>
-            <LinearProgress variant="determinate" value={pct} sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.06)', '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 2 } }}/>
+
+          {/* Progress pill */}
+          <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 1, px: 1.5, py: 0.5,
+            bgcolor: pct > 0 ? alpha(color, 0.08) : 'rgba(255,255,255,0.03)',
+            border: `1px solid ${pct > 0 ? alpha(color, 0.25) : 'rgba(255,255,255,0.07)'}`,
+            borderRadius: '100px', transition: 'all 0.3s' }}>
+            <Box sx={{ width: 48, height: 3, bgcolor: 'rgba(255,255,255,0.08)', borderRadius: 2, overflow: 'hidden' }}>
+              <Box component={motion.div} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.8 }}
+                sx={{ height: '100%', bgcolor: color, boxShadow: `0 0 6px ${color}` }}/>
+            </Box>
+            <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: pct > 0 ? color : C.muted }}>{pct}%</Typography>
           </Box>
-          <Typography sx={{ fontSize: '0.72rem', color: C.muted, flexShrink: 0 }}>{pct}%</Typography>
-        </Box>
-        {completed && <Chip icon={<FiCheck size={10}/>} label="Completada" size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700, bgcolor: alpha(C.green, 0.1), color: C.green, border: `1px solid ${alpha(C.green, 0.3)}`, '& .MuiChip-icon': { color: `${C.green} !important`, ml: '5px' } }}/>}
-        {saving && <CircularProgress size={12} sx={{ color: C.muted, flexShrink: 0 }}/>}
-        <Box sx={{ display: 'flex', gap: 0.25, flexShrink: 0 }}>
-          <Button size="small" disabled={!prev} onClick={() => prev && router.push(`/universidad/${course.slug}/${prev.id}`)} sx={{ minWidth: 0, px: 0.75, color: C.muted, '&:hover': { color: C.text }, '&.Mui-disabled': { opacity: 0.25 } }}><FiChevronLeft size={15}/></Button>
-          <Button size="small" disabled={!next} onClick={() => next && router.push(`/universidad/${course.slug}/${next.id}`)} sx={{ minWidth: 0, px: 0.75, color: C.muted, '&:hover': { color: C.text }, '&.Mui-disabled': { opacity: 0.25 } }}><FiChevronRight size={15}/></Button>
+
+          {/* Completed badge */}
+          {completed && (
+            <Box component={motion.div} initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.4,
+                bgcolor: alpha(C.green, 0.1), border: `1px solid ${alpha(C.green, 0.3)}`,
+                borderRadius: '100px', boxShadow: `0 0 10px ${alpha(C.green, 0.2)}` }}>
+              <FiCheck size={10} color={C.green}/>
+              <Typography sx={{ fontSize: '0.62rem', fontWeight: 700, color: C.green, letterSpacing: '0.05em' }}>COMPLETADA</Typography>
+            </Box>
+          )}
+
+          {/* Saving spinner */}
+          {saving && <CircularProgress size={12} sx={{ color: alpha(color, 0.6), flexShrink: 0 }}/>}
+
+          {/* Prev / Next */}
+          <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+            <Box onClick={() => prev && router.push(`/universidad/${course.slug}/${prev.id}`)}
+              sx={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', cursor: prev ? 'pointer' : 'default', opacity: prev ? 1 : 0.2, border: `1px solid ${prev ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)'}`, bgcolor: 'rgba(255,255,255,0.03)', color: C.muted, transition: 'all 0.15s', '&:hover': prev ? { bgcolor: 'rgba(255,255,255,0.08)', color: C.text, borderColor: 'rgba(255,255,255,0.2)' } : {} }}>
+              <FiChevronLeft size={14}/>
+            </Box>
+            <Box onClick={() => next && router.push(`/universidad/${course.slug}/${next.id}`)}
+              sx={{ width: 28, height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px', cursor: next ? 'pointer' : 'default', opacity: next ? 1 : 0.2, border: `1px solid ${next ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.04)'}`, bgcolor: 'rgba(255,255,255,0.03)', color: C.muted, transition: 'all 0.15s', '&:hover': next ? { bgcolor: alpha(color, 0.1), color: color, borderColor: alpha(color, 0.3) } : {} }}>
+              <FiChevronRight size={14}/>
+            </Box>
+          </Box>
         </Box>
       </Box>
 
@@ -1114,7 +1194,7 @@ export function SubseccionPlayer({
         {step === 'exercise' && (
           <Box>
             <Typography sx={{ fontFamily: 'Poppins', fontWeight: 700, fontSize: '1rem', mb: 0.5 }}>
-              {{'quiz':'Cuestionario','lab':'Lab','challenge':'Reto abierto','flashcard':'Flashcards','cloze':'Completa los huecos','drag_drop':'Arrastra y suelta','timeline':'Línea de tiempo','decision':'Escenario','survey':'Reflexión','mindmap':'Mapa mental','replit':'Proyecto Replit','github':'Repositorio GitHub'}[evalType] ?? 'Ejercicio'}
+              {{'lab':'Lab','challenge':'Reto abierto','flashcard':'Flashcards','cloze':'Completa los huecos','drag_drop':'Arrastra y suelta','timeline':'Línea de tiempo','decision':'Escenario','survey':'Reflexión','mindmap':'Mapa mental','replit':'Proyecto Replit','github':'Repositorio GitHub','quiz':'Quiz'}[evalType] ?? 'Ejercicio'}
             </Typography>
             <Typography sx={{ fontSize: '0.78rem', color: C.muted, mb: 3 }}>
               {evalType === 'quiz' ? 'Responde correctamente para completar.' : evalType === 'lab' ? 'Escribe el código y corre los tests.' : evalType === 'flashcard' ? 'Repasa las tarjetas hasta dominarlas.' : 'Completa el ejercicio para continuar.'}

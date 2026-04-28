@@ -1,3 +1,4 @@
+// File: frontend-datheon/components/universidad/UniversidadDashboard.tsx
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
