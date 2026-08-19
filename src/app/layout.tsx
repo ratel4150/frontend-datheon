@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
-import { poppins } from '@/theme/fonts'
+import { poppins } from '@datheon/shared/ui/theme'
 import { Providers } from './providers'
 import { ClerkProvider } from '@clerk/nextjs'
 

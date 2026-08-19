@@ -1,8 +1,8 @@
 // File: frontend-datheon/src/app/(lang)/[lang]/layout.tsx
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
-import { AppBarMain } from '../components/AppBarMain'
-import { ChatWidget } from '../components/ChatWidget'
+import { AppBarMain } from '@datheon/widgets/header'
+import { ChatWidget } from '@datheon/features/chat-widget'
 
 
 type Props = {

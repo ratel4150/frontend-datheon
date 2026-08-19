@@ -1,7 +1,7 @@
 // File: frontend-datheon/src/app/certificado/[uuid]/opengraph-image.tsx
 import { ImageResponse } from 'next/og'
-import { dbU as db } from '@/lib/db'
-import { certificates, courses } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { certificates, courses } from '@datheon/shared/api/db/schema'
 import { eq } from 'drizzle-orm'
 
 export const runtime = 'edge'

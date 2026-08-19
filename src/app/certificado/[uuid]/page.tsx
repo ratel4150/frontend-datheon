@@ -1,9 +1,9 @@
 // File: frontend-datheon/src/app/certificado/[uuid]/page.tsx
-import { dbU as db } from '@/lib/db'
-import { certificates, courses, subsections } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { certificates, courses, subsections } from '@datheon/shared/api/db/schema'
 import { eq } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
-import { CertificadoView } from '../../../../components/universidad/CertificadoView'
+import { CertificadoView } from '@datheon/widgets/certificado-view'
 
 type Props = { params: Promise<{ uuid: string }> }
 

@@ -3,11 +3,11 @@
 import type { ReactNode } from 'react'
 import { CssBaseline, ThemeProvider } from '@mui/material'
 import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter'
-import { theme } from '@/theme/theme'
+import { theme } from '@datheon/shared/ui/theme'
 import dynamic from 'next/dynamic'
 
 const CookieConsentBanner = dynamic(
-  () => import('../../components/landing/CookieConsentBanner'),
+  () => import('@datheon/features/cookie-consent').then(m => m.CookieConsentBanner),
   { ssr: false }
 )
 

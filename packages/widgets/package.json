@@ -1,0 +1,25 @@
+{
+  "name": "@datheon/widgets",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./header": "./src/header/index.ts",
+    "./footer": "./src/footer/index.ts",
+    "./hero": "./src/hero/index.ts",
+    "./testimonials": "./src/testimonials/index.ts",
+    "./work-process": "./src/work-process/index.ts",
+    "./why-choose-us": "./src/why-choose-us/index.ts",
+    "./our-services": "./src/our-services/index.ts",
+    "./our-team": "./src/our-team/index.ts",
+    "./our-specialized-sectors": "./src/our-specialized-sectors/index.ts",
+    "./universidad-dashboard": "./src/universidad-dashboard/index.ts",
+    "./curso-client": "./src/curso-client/index.ts",
+    "./subseccion-player": "./src/subseccion-player/index.ts",
+    "./certificado-view": "./src/certificado-view/index.ts"
+  },
+  "dependencies": {
+    "@datheon/shared": "*",
+    "@datheon/entities": "*",
+    "@datheon/features": "*"
+  }
+}

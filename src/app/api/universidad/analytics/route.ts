@@ -1,8 +1,8 @@
 // File: frontend-datheon/src/app/api/universidad/analytics/route.ts
 import { auth } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { dbU as db } from '@/lib/db'
-import { subsectionProgress } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { subsectionProgress } from '@datheon/shared/api/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 export async function POST(req: NextRequest) {

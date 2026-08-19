@@ -1,0 +1,16 @@
+{
+  "name": "@datheon/features",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./language-switcher": "./src/language-switcher/index.ts",
+    "./chat-widget": "./src/chat-widget/index.ts",
+    "./achievements-counter": "./src/achievements-counter/index.ts",
+    "./cookie-consent": "./src/cookie-consent/index.ts",
+    "./analytics-tracking": "./src/analytics-tracking/index.ts"
+  },
+  "dependencies": {
+    "@datheon/shared": "*",
+    "@datheon/entities": "*"
+  }
+}

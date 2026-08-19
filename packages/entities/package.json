@@ -1,0 +1,13 @@
+{
+  "name": "@datheon/entities",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./course": "./src/course/index.ts",
+    "./certificate": "./src/certificate/index.ts",
+    "./user-progress": "./src/user-progress/index.ts"
+  },
+  "dependencies": {
+    "@datheon/shared": "*"
+  }
+}

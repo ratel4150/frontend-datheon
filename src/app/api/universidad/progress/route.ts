@@ -1,7 +1,7 @@
 import { auth, currentUser } from '@clerk/nextjs/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { dbU as db } from '@/lib/db'
-import { subsectionProgress, subsections, courses, certificates } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { subsectionProgress, subsections, courses, certificates } from '@datheon/shared/api/db/schema'
 import { eq, and } from 'drizzle-orm'
 
 // Simple in-memory rate limiter (resets on server restart — use Redis in prod)

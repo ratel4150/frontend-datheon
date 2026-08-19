@@ -1,0 +1,1 @@
+export { getDeviceData } from './deviceTracking'

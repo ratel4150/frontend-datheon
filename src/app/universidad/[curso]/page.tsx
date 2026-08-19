@@ -1,11 +1,11 @@
 // File: frontend-datheon/src/app/universidad/[curso]/page.tsx
 
 import { currentUser } from '@clerk/nextjs/server'
-import { dbU as db } from '@/lib/db'
-import { courses, blocks, topics, lessons, subsections, subsectionProgress, certificates } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { courses, blocks, topics, lessons, subsections, subsectionProgress, certificates } from '@datheon/shared/api/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
-import { CursoClient } from '../../../../components/universidad/CursoClient'
+import { CursoClient } from '@datheon/widgets/curso-client'
 
 export const dynamic = 'force-dynamic'
 type Props = { params: Promise<{ curso: string }> }

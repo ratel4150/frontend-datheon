@@ -1,7 +1,10 @@
 {
-  "name": "-hb-devtechsolutions",
+  "name": "datheon-web",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -17,6 +20,10 @@
     "@codemirror/state": "^6.6.0",
     "@codemirror/theme-one-dark": "^6.1.3",
     "@codemirror/view": "^6.41.1",
+    "@datheon/entities": "*",
+    "@datheon/features": "*",
+    "@datheon/shared": "*",
+    "@datheon/widgets": "*",
     "@emotion/cache": "^11.14.0",
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -54,6 +61,7 @@
     "@types/react-slick": "^0.23.13",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
+    "eslint-plugin-boundaries": "^7.2.0",
     "typescript": "^5"
   }
 }

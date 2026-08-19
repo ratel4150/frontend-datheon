@@ -1,10 +1,10 @@
 // File: frontend-datheon/src/app/universidad/[curso]/[subseccion]/page.tsx
 import { currentUser } from '@clerk/nextjs/server'
-import { dbU as db } from '@/lib/db'
-import { courses, blocks, topics, lessons, subsections, subsectionProgress } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { courses, blocks, topics, lessons, subsections, subsectionProgress } from '@datheon/shared/api/db/schema'
 import { eq, and } from 'drizzle-orm'
 import { notFound } from 'next/navigation'
-import { SubseccionPlayer } from '../../../../../components/universidad/SubseccionPlayer'
+import { SubseccionPlayer } from '@datheon/widgets/subseccion-player'
 
 export const dynamic = 'force-dynamic'
 type Props = { params: Promise<{ curso: string; subseccion: string }> }

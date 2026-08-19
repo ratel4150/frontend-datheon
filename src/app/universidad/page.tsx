@@ -1,10 +1,10 @@
 // File: frontend-datheon/src/app/universidad/page.tsx
 import { currentUser } from '@clerk/nextjs/server'
 import { redirect } from 'next/navigation'
-import { dbU as db } from '@/lib/db'
-import { courses, subsectionProgress, certificates, subsections, lessons, topics, blocks } from '@/lib/db/schema'
+import { dbU as db } from '@datheon/shared/api/db'
+import { courses, subsectionProgress, certificates, subsections, lessons, topics, blocks } from '@datheon/shared/api/db/schema'
 import { eq, and, desc } from 'drizzle-orm'
-import { UniversidadDashboard } from '../../../components/universidad/UniversidadDashboard'
+import { UniversidadDashboard } from '@datheon/widgets/universidad-dashboard'
 
 export const dynamic = 'force-dynamic'
 

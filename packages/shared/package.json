@@ -1,0 +1,11 @@
+{
+  "name": "@datheon/shared",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./ui/theme": "./src/ui/theme/index.ts",
+    "./lib/tracking": "./src/lib/tracking/index.ts",
+    "./api/db": "./src/api/db/index.ts",
+    "./api/db/schema": "./src/api/db/schema.ts"
+  }
+}
