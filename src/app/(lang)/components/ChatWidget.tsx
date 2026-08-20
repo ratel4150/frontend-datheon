@@ -30,7 +30,7 @@ const C = {
 
 type Props = { lang: string }
 
-const MAX_LEN = 1000
+const MAX_LEN = 4000
 const STORAGE_PREFIX = 'datheon-chat-'
 const storageKey = (lang: string) => `${STORAGE_PREFIX}${lang}`
 
@@ -657,10 +657,10 @@ export function ChatWidget({ lang }: Props) {
                   onKeyDown={handleKey}
                   disabled={!isOnline}
                   placeholder={placeholder[lang] ?? placeholder['es']}
-                  inputProps={{ 'aria-label': placeholder[lang] ?? placeholder['es'], maxLength: MAX_LEN + 50 }}
+                  inputProps={{ 'aria-label': placeholder[lang] ?? placeholder['es'] }}
                   sx={{
                     '& .MuiOutlinedInput-root': {
-                      borderRadius: '14px', fontSize: '0.86rem', bgcolor: C.accentBg,color: C.text,
+                      borderRadius: '14px', fontSize: '0.86rem', bgcolor: C.accentBg,
                       transition: 'background-color 0.15s ease',
                       '& fieldset': { borderColor: overLimit ? C.danger : C.accentLine },
                       '&:hover fieldset': { borderColor: overLimit ? C.danger : C.accent },

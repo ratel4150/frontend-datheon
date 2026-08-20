@@ -77,3 +77,34 @@ src/
 │   ├── shared/                           # Botones, cards, UI reutilizable
 ├── lib/                                  # Utilidades (i18n, SEO helpers, etc.)
 └── styles/                               # Global.css o Theme.ts
+
+
+
+
+Arquitectura completa de la Landing Page de Datheón
+#	Sección	Objetivo
+01	Hero	Explicar en segundos qué es Datheón y generar el primer contacto
+02	Trust Bar / Ecosistema	Demostrar amplitud tecnológica y generar confianza
+03	¿Qué necesitas construir?	Capturar al visitante según su necesidad
+04	¿En qué etapa está tu empresa?	Personalizar la propuesta para Startup, PyME, Mid-Market y Enterprise
+05	Datheón Technology Stack	Mostrar que podemos trabajar en todo el ecosistema tecnológico
+06	Software Engineering	Desarrollo de software, SaaS, plataformas y sistemas empresariales
+07	AI Engineering	IA generativa, agentes, RAG, ML, visión, etc.
+08	AI Agents & Multi-Agent Systems	Agentes autónomos, Swarms y automatización inteligente
+09	AI-Assisted Software Engineering	Programación con IA, coding agents y desarrollo agentic
+10	Local / Private AI	IA privada, on-premise, local y modelos propios
+11	AI Hardware & GPU Infrastructure	Construcción de servidores/workstations de IA
+12	Neural Networks & Machine Learning	Desarrollo de modelos y sistemas predictivos
+13	IoT & Hardware Engineering	Conectar sensores, máquinas, PLCs y dispositivos
+14	Edge AI	IA ejecutándose cerca de donde se generan los datos
+15	Data & Analytics	Data platforms, BI, analytics y machine learning
+16	Cloud & Infrastructure	Cloud, DevOps, Kubernetes, GPU Cloud, On-Prem
+17	Integrations	CRM, ERP, WhatsApp, APIs, pagos, e-commerce, etc.
+18	Automation	Automatización de procesos y operaciones
+19	E-commerce & Digital Commerce	B2B, B2C, marketplaces y comercio omnicanal
+20	Mobile Applications	Apps para clientes, empleados, ventas, campo e IoT
+21	Knowledge Systems / Obsidian + AI	Knowledge bases, MCP, RAG y memoria empresarial
+22	High Performance Computing	GPU computing, servidores, HPC y crypto infrastructure
+23	Datheón Labs	Tecnologías emergentes, R&D y experimentación
+24	Soluciones por Industria	Landing y soluciones específicas por sector
+25	Casos de éxito + CTA final	Convertir confianza en prospectos
