@@ -4,10 +4,7 @@
 import { Box, Typography, Container, GlobalStyles, alpha } from '@mui/material'
 import { motion, AnimatePresence, useInView } from 'framer-motion'
 import { useRef, useState } from 'react'
-import {
-  FiArrowRight, FiRadio, FiWifi, FiCpu, FiUsers, FiCode,
-  FiDatabase, FiRefreshCw, FiTrendingUp, FiGitBranch, FiZap,
-} from 'react-icons/fi'
+import { FiArrowRight, FiZap } from 'react-icons/fi'
 
 // ─── Tokens — misma paleta y tipografía del Hero ────────────────
 const C = {
@@ -20,19 +17,19 @@ const C = {
   accentBg:   'rgba(0,174,239,0.07)',
   accentLine: 'rgba(0,174,239,0.18)',
   border:     '#ebebeb',
-  statsB:     '#F4FAFE',
 } as const
 
 const DISPLAY = 'Poppins, sans-serif'
 const MONO    = "'IBM Plex Mono', 'JetBrains Mono', ui-monospace, monospace"
 
-// Esta sección sigue el mockup final del brief (punto 19): la cadena
-// vertical de capas con datos viajando, el framework "From Signal to
-// Action", el diagrama "Enter where you are" y el cierre. Se dejan
-// fuera, para una siguiente iteración si se quiere: "Trace the data"
-// paso a paso y el selector de perspectivas — ambos añaden bastante
-// superficie de interacción y esta sección ya es la más densa de la
-// página; mejor que aterrice sólida antes de sumarle más capas.
+// ─── Por qué cambió la estructura ────────────────────────────────
+// La versión anterior era una columna larga de bloques centrados —
+// se leía como una pared de texto. Aquí el encabezado se resuelve
+// como un hero de segundo nivel: info a la izquierda, y a la derecha
+// una pieza gráfica grande y sobria — no una foto de stock, sino la
+// arquitectura misma de Datheón dibujada como diagrama radial. Es
+// la imagen más "empresarial" que puede tener esta sección: es
+// literalmente el producto, no una fotografía genérica de oficinas.
 
 type Lang = 'es' | 'en' | 'fr'
 type Props = { lang: string }
@@ -42,6 +39,8 @@ const content: Record<Lang, {
   title: string
   subheadline: string
   microcopy: string
+  imagePanelLabel: string
+  imagePanelStatus: string
   signalKicker: string
   enterKicker: string
   enterTagline: string
@@ -56,6 +55,8 @@ const content: Record<Lang, {
     title: 'La tecnología moderna no termina en una pantalla.',
     subheadline: 'Conectamos el mundo físico, el software, la inteligencia artificial y la infraestructura para convertir tecnología dispersa en sistemas que trabajan como uno solo.',
     microcopy: 'Desde un sensor hasta una decisión de negocio.',
+    imagePanelLabel: 'Arquitectura del sistema',
+    imagePanelStatus: 'operativo',
     signalKicker: 'FROM SIGNAL TO ACTION',
     enterKicker: 'ENTER WHERE YOU ARE',
     enterTagline: 'Empieza donde estás. Evoluciona desde ahí.',
@@ -70,6 +71,8 @@ const content: Record<Lang, {
     title: "Modern technology doesn't end at a screen.",
     subheadline: 'We connect the physical world, software, artificial intelligence, and infrastructure to turn scattered technology into systems that work as one.',
     microcopy: 'From a sensor to a business decision.',
+    imagePanelLabel: 'System architecture',
+    imagePanelStatus: 'operational',
     signalKicker: 'FROM SIGNAL TO ACTION',
     enterKicker: 'ENTER WHERE YOU ARE',
     enterTagline: 'Start where you are. Evolve from there.',
@@ -84,6 +87,8 @@ const content: Record<Lang, {
     title: "La technologie moderne ne s'arrête pas à un écran.",
     subheadline: "Nous connectons le monde physique, le logiciel, l'intelligence artificielle et l'infrastructure pour transformer une technologie dispersée en systèmes qui fonctionnent comme un seul.",
     microcopy: "D'un capteur à une décision d'affaires.",
+    imagePanelLabel: 'Architecture du système',
+    imagePanelStatus: 'opérationnel',
     signalKicker: 'FROM SIGNAL TO ACTION',
     enterKicker: 'ENTER WHERE YOU ARE',
     enterTagline: "Commencez là où vous êtes. Évoluez à partir de là.",
@@ -95,143 +100,141 @@ const content: Record<Lang, {
   },
 }
 
-// ─── Cadena vertical de capas — nombres universales ─────────────
-const CHAIN = [
-  { name: 'SENSOR', icon: FiRadio, desc: 'Donde nace la señal', chips: ['Sensors', 'Cameras', 'Machines', 'IoT'] },
-  { name: 'EDGE', icon: FiWifi, desc: 'Procesa cerca del origen', chips: ['ESP32', 'Raspberry Pi', 'Gateways', 'Edge Compute'] },
-  { name: 'AI', icon: FiCpu, desc: 'Interpreta y predice', chips: ['LLM', 'RAG', 'Agents', 'Computer Vision'] },
-  { name: 'AGENT', icon: FiUsers, desc: 'Decide la siguiente acción', chips: ['Decisions', 'Orchestration', 'Multi-Agent', 'Triggers'] },
-  { name: 'SOFTWARE', icon: FiCode, desc: 'Ejecuta la experiencia', chips: ['Web', 'Mobile', 'SaaS', 'APIs'] },
-  { name: 'ERP', icon: FiDatabase, desc: 'Sincroniza el negocio', chips: ['SAP', 'Odoo', 'Dynamics', 'Inventory'] },
-  { name: 'AUTOMATION', icon: FiRefreshCw, desc: 'Dispara el flujo', chips: ['Workflows', 'Notifications', 'Scheduling', 'Rules'] },
-  { name: 'BUSINESS', icon: FiTrendingUp, desc: 'Resultado medible', chips: ['Sales', 'Operations', 'Growth', 'Decisions'] },
+// nombres universales, no se traducen (igual que en el resto del sitio)
+export const CHAIN = [
+  { name: 'SENSOR', desc: 'Donde nace la señal', chips: ['Sensors', 'Cameras', 'Machines', 'IoT'] },
+  { name: 'EDGE', desc: 'Procesa cerca del origen', chips: ['ESP32', 'Raspberry Pi', 'Gateways', 'Edge Compute'] },
+  { name: 'AI', desc: 'Interpreta y predice', chips: ['LLM', 'RAG', 'Agents', 'Computer Vision'] },
+  { name: 'AGENT', desc: 'Decide la siguiente acción', chips: ['Decisions', 'Orchestration', 'Multi-Agent', 'Triggers'] },
+  { name: 'SOFTWARE', desc: 'Ejecuta la experiencia', chips: ['Web', 'Mobile', 'SaaS', 'APIs'] },
+  { name: 'ERP', desc: 'Sincroniza el negocio', chips: ['SAP', 'Odoo', 'Dynamics', 'Inventory'] },
+  { name: 'AUTOMATION', desc: 'Dispara el flujo', chips: ['Workflows', 'Notifications', 'Scheduling', 'Rules'] },
+  { name: 'BUSINESS', desc: 'Resultado medible', chips: ['Sales', 'Operations', 'Growth', 'Decisions'] },
 ] as const
 
 const SIGNAL_STEPS = [
-  { name: 'SIGNAL', icon: FiRadio, items: ['Sensors', 'Machines', 'Cameras', 'IoT'] },
-  { name: 'DATA', icon: FiDatabase, items: ['APIs', 'Databases', 'Streams', 'Cloud'] },
-  { name: 'INTELLIGENCE', icon: FiCpu, items: ['AI', 'ML', 'LLM', 'Vision'] },
-  { name: 'DECISION', icon: FiGitBranch, items: ['AI Agents', 'Swarms', 'Rules', 'Analytics'] },
-  { name: 'ACTION', icon: FiZap, items: ['ERP', 'CRM', 'PLC', 'Automation'] },
+  { name: 'SIGNAL', items: ['Sensors', 'Machines', 'IoT'] },
+  { name: 'DATA', items: ['APIs', 'Databases', 'Cloud'] },
+  { name: 'INTELLIGENCE', items: ['AI', 'ML', 'Vision'] },
+  { name: 'DECISION', items: ['AI Agents', 'Rules', 'Analytics'] },
+  { name: 'ACTION', items: ['ERP', 'CRM', 'Automation'] },
 ] as const
 
 const ENTER_TOP = ['AI', 'SOFTWARE', 'DATA', 'IoT']
 const ENTER_BOTTOM = ['CLOUD', 'HARDWARE', 'ERP']
 
-// ─── Backdrop — trazas de circuito, tercera firma visual ────────
-// El Hero tiene olas, Technology Ecosystem tiene una malla de
-// puntos; esta sección trata de arquitectura de sistemas, así que
-// el fondo son trazas rectas tipo PCB — mismo azul, otra forma.
-function CircuitBackdrop() {
-  return (
-    <Box
-      aria-hidden
-      sx={{
-        position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden', pointerEvents: 'none',
-        maskImage: 'radial-gradient(ellipse 80% 75% at 50% 45%, black 25%, transparent 92%)',
-        WebkitMaskImage: 'radial-gradient(ellipse 80% 75% at 50% 45%, black 25%, transparent 92%)',
-      }}
-    >
-      <Box component="svg" width="100%" height="100%" sx={{ position: 'absolute', inset: 0, display: 'block' }}>
-        <defs>
-          <pattern id="saCircuitPattern" width="120" height="120" patternUnits="userSpaceOnUse">
-            <path d="M0,30 H40 V70 H90" fill="none" stroke={C.accent} strokeWidth="1" opacity="0.09" />
-            <path d="M60,0 V25 H120" fill="none" stroke={C.accent} strokeWidth="1" opacity="0.07" />
-            <path d="M20,90 V120" fill="none" stroke={C.accent} strokeWidth="1" opacity="0.07" />
-            <circle cx="40" cy="70" r="2" fill={C.accent} opacity="0.16" />
-            <circle cx="90" cy="70" r="2" fill={C.accent} opacity="0.13" />
-            <circle cx="60" cy="25" r="2" fill={C.accent} opacity="0.13" />
-          </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#saCircuitPattern)" />
-      </Box>
-    </Box>
-  )
+// ─── Imagen grande: diagrama radial de la arquitectura ──────────
+// 500x500 — DATHEÓN al centro, las 8 capas alrededor, cada una en
+// hover revela sus sub-capacidades. El SVG dibuja las líneas y
+// marcadores; el overlay HTML captura el hover y muestra la tarjeta
+// (más simple y confiable que eventos dentro de <svg>).
+const RADIUS = 178
+const CENTER = 250
+function nodePos(i: number, total: number) {
+  const angle = (-90 + (360 / total) * i) * (Math.PI / 180)
+  return { x: CENTER + RADIUS * Math.cos(angle), y: CENTER + RADIUS * Math.sin(angle) }
 }
 
-// ─── Nodo de la cadena — hover revela sub-capacidades ───────────
-function ChainNode({ node, isCore }: { node: (typeof CHAIN)[number]; isCore?: boolean }) {
-  const [hovered, setHovered] = useState(false)
-  const Icon = node.icon
+function ArchitectureImage({ animate }: { animate: boolean }) {
+  const [hovered, setHovered] = useState<number | null>(null)
+  const positions = CHAIN.map((_, i) => nodePos(i, CHAIN.length))
+
   return (
-    <Box
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      sx={{ position: 'relative' }}
-    >
-      <Box
-        component={motion.div}
-        whileHover={{ x: 4 }}
-        sx={{
-          display: 'flex', alignItems: 'center', gap: 1.5, cursor: 'pointer',
-          px: 2, py: 1.4, borderRadius: '12px',
-          bgcolor: isCore ? C.accentBg : '#FFFFFF',
-          border: `1px solid ${hovered ? C.accent : (isCore ? C.accentLine : C.border)}`,
-          boxShadow: hovered ? `0 10px 24px ${alpha(C.accent, 0.18)}` : `0 2px 8px ${alpha(C.text, 0.04)}`,
-          transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-        }}
-      >
-        <Box sx={{
-          width: 36, height: 36, borderRadius: '9px', flexShrink: 0,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          bgcolor: hovered ? C.accent : C.accentBg,
-          transition: 'background-color 0.2s ease',
-        }}>
-          <Icon size={16} color={hovered ? '#FFFFFF' : C.accentDk} />
-        </Box>
-        <Box>
-          <Typography sx={{
-            fontFamily: MONO, fontWeight: 700, fontSize: '0.76rem',
-            letterSpacing: '0.06em', color: hovered ? C.accentDk : C.text, lineHeight: 1.3,
-          }}>
-            {node.name}
-          </Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: C.textMute, lineHeight: 1.3 }}>
-            {node.desc}
-          </Typography>
-        </Box>
+    <Box sx={{ position: 'relative', width: '100%', aspectRatio: '1 / 1' }}>
+      <Box component="svg" viewBox="0 0 500 500" sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}>
+        {positions.map((p, i) => (
+          <line
+            key={`base-${i}`} x1={CENTER} y1={CENTER} x2={p.x} y2={p.y}
+            stroke={C.border} strokeWidth={1.2}
+          />
+        ))}
+        {positions.map((p, i) => (
+          <line
+            key={`pulse-${i}`} x1={CENTER} y1={CENTER} x2={p.x} y2={p.y}
+            stroke={C.accent} strokeWidth={1.4} strokeLinecap="round"
+            strokeDasharray="3 10" opacity={hovered === i ? 0.75 : 0.3}
+            className="sa-hub-pulse"
+          />
+        ))}
+
+        <circle cx={CENTER} cy={CENTER} r={44} fill={C.accentBg} stroke={C.accentLine} strokeWidth={1.5} />
+        <text x={CENTER} y={CENTER - 3} textAnchor="middle" fontFamily={MONO} fontWeight={700} fontSize={13} fill={C.text}>DATHEÓN</text>
+        <text x={CENTER} y={CENTER + 13} textAnchor="middle" fontFamily={MONO} fontWeight={500} fontSize={7.5} letterSpacing="0.5" fill={C.textMute}>ENGINEERING</text>
+
+        {positions.map((p, i) => (
+          <g key={i} style={{ opacity: animate ? 1 : 0, transition: `opacity .45s ease ${0.1 + i * 0.06}s` }}>
+            <circle
+              cx={p.x} cy={p.y} r={hovered === i ? 26 : 22}
+              fill={hovered === i ? C.accent : '#FFFFFF'}
+              stroke={hovered === i ? C.accent : C.border}
+              strokeWidth={1.4}
+              style={{ transition: 'r 0.2s ease' }}
+            />
+          </g>
+        ))}
+        {positions.map((p, i) => {
+          const below = p.y > CENTER + 40
+          const labelY = below ? p.y + 38 : (p.y < CENTER - 40 ? p.y - 30 : p.y + 4)
+          return (
+            <text
+              key={`l-${i}`} x={p.x} y={labelY} textAnchor="middle"
+              fontFamily={MONO} fontWeight={700} fontSize={9}
+              letterSpacing="0.03em" fill={hovered === i ? C.accentDk : C.text}
+              style={{ opacity: animate ? 1 : 0, transition: `opacity .45s ease ${0.1 + i * 0.06}s` }}
+            >
+              {CHAIN[i].name}
+            </text>
+          )
+        })}
       </Box>
 
-      <AnimatePresence>
-        {hovered && (
-          <Box
-            component={motion.div}
-            initial={{ opacity: 0, y: -4 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.16 }}
-            sx={{
-              position: 'absolute', top: 'calc(100% + 6px)', left: 0, right: 0,
-              zIndex: 30, display: 'flex', flexWrap: 'wrap', gap: 0.5, px: 1,
-            }}
-          >
-            {node.chips.map((c) => (
-              <Box key={c} sx={{
-                px: 1, py: 0.3, borderRadius: '20px',
-                bgcolor: '#FFFFFF', border: `1px solid ${C.accentLine}`,
-                fontFamily: MONO, fontSize: '0.6rem', color: C.accentDk, whiteSpace: 'nowrap',
-                boxShadow: `0 4px 10px ${alpha(C.text, 0.06)}`,
-              }}>
-                {c}
+      {/* overlay HTML — hover trigger + tarjeta de capacidades */}
+      {positions.map((p, i) => (
+        <Box
+          key={`hit-${i}`}
+          onMouseEnter={() => setHovered(i)}
+          onMouseLeave={() => setHovered(null)}
+          sx={{
+            position: 'absolute', width: '13%', height: '13%',
+            left: `${(p.x / 500) * 100}%`, top: `${(p.y / 500) * 100}%`,
+            transform: 'translate(-50%, -50%)', cursor: 'pointer',
+          }}
+        >
+          <AnimatePresence>
+            {hovered === i && (
+              <Box
+                component={motion.div}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+                sx={{
+                  position: 'absolute', bottom: p.y > CENTER ? 'auto' : 'calc(100% + 32px)',
+                  top: p.y > CENTER ? 'calc(100% + 32px)' : 'auto',
+                  left: '50%', transform: 'translateX(-50%)', zIndex: 40,
+                  width: 'max-content', maxWidth: 180,
+                  bgcolor: '#FFFFFF', border: `1px solid ${C.accentLine}`, borderRadius: '10px',
+                  p: 1.1, boxShadow: `0 14px 30px ${alpha(C.text, 0.14)}`,
+                }}
+              >
+                <Typography sx={{ fontFamily: MONO, fontSize: '0.6rem', fontWeight: 700, color: C.accentDk, mb: 0.4 }}>
+                  {CHAIN[i].desc}
+                </Typography>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.35 }}>
+                  {CHAIN[i].chips.map((c) => (
+                    <Box key={c} sx={{
+                      px: 0.8, py: 0.2, borderRadius: '20px', bgcolor: C.accentBg,
+                      fontFamily: MONO, fontSize: '0.56rem', color: C.accentDk, whiteSpace: 'nowrap',
+                    }}>
+                      {c}
+                    </Box>
+                  ))}
+                </Box>
               </Box>
-            ))}
-          </Box>
-        )}
-      </AnimatePresence>
-    </Box>
-  )
-}
-
-// ─── Conector — línea con partículas de datos viajando ──────────
-function ParticleConnector({ active }: { active: boolean }) {
-  return (
-    <Box sx={{ position: 'relative', width: 2, height: 40, ml: '34px', bgcolor: C.border }}>
-      {active && (
-        <>
-          <Box className="sa-particle" sx={{ animationDelay: '0s' }} />
-          <Box className="sa-particle" sx={{ animationDelay: '0.9s' }} />
-        </>
-      )}
+            )}
+          </AnimatePresence>
+        </Box>
+      ))}
     </Box>
   )
 }
@@ -280,86 +283,90 @@ export function SystemArchitecture({ lang }: Props) {
   const t = content[l]
 
   const sectionRef = useRef(null)
-  const chainRef = useRef(null)
+  const imageRef = useRef(null)
   const enterRef = useRef(null)
   const isInView = useInView(sectionRef, { once: true, margin: '-40px' })
-  const chainInView = useInView(chainRef, { once: true, margin: '-60px' })
+  const imageInView = useInView(imageRef, { once: true, margin: '-60px' })
   const enterInView = useInView(enterRef, { once: true, margin: '-60px' })
 
   return (
     <Box component="section" ref={sectionRef} sx={{ position: 'relative', bgcolor: C.bg, py: { xs: 9, md: 12 }, overflow: 'hidden' }}>
       <GlobalStyles
         styles={{
-          '.sa-particle': {
-            position: 'absolute', top: 0, left: '50%', width: 5, height: 5, borderRadius: '50%',
-            bgcolor: C.accent, transform: 'translateX(-50%)',
-            animation: 'saFall 1.8s linear infinite',
-          },
-          '@keyframes saFall': {
-            '0%': { top: '-4px', opacity: 0 },
-            '15%': { opacity: 1 },
-            '85%': { opacity: 1 },
-            '100%': { top: '100%', opacity: 0 },
-          },
           '.sa-hub-pulse': { animation: 'saHubDash 3s linear infinite' },
-          '@keyframes saHubDash': { to: { strokeDashoffset: -110 } },
-          '@media (prefers-reduced-motion: reduce)': {
-            '.sa-particle, .sa-hub-pulse': { animation: 'none' },
-          },
+          '@keyframes saHubDash': { to: { strokeDashoffset: -130 } },
+          '@media (prefers-reduced-motion: reduce)': { '.sa-hub-pulse': { animation: 'none' } },
         }}
       />
 
-      {/* glow único, sutil */}
       <Box sx={{
-        position: 'absolute', top: '30%', left: '50%', transform: 'translate(-50%,-50%)',
-        width: 700, height: 500, borderRadius: '50%',
-        background: C.accent, filter: 'blur(200px)', opacity: 0.045, pointerEvents: 'none',
+        position: 'absolute', top: '10%', right: '-10%', width: 600, height: 600, borderRadius: '50%',
+        background: C.accent, filter: 'blur(200px)', opacity: 0.05, pointerEvents: 'none',
       }} />
-
-      <CircuitBackdrop />
 
       <Container maxWidth="lg" sx={{ position: 'relative', zIndex: 1 }}>
 
-        {/* ── Header ── */}
-        <Box
-          component={motion.div}
-          initial={{ opacity: 0, y: 16 }}
-          animate={isInView ? { opacity: 1, y: 0 } : {}}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          sx={{ textAlign: 'center', maxWidth: 680, mx: 'auto', mb: { xs: 7, md: 9 } }}
-        >
-          <Typography sx={{ fontFamily: MONO, fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.16em', color: C.accentDk, mb: 1.5 }}>
-            {t.kicker}
-          </Typography>
-          <Typography variant="h2" sx={{
-            fontFamily: DISPLAY, fontWeight: 700, fontSize: { xs: '1.8rem', md: '2.3rem' },
-            lineHeight: 1.28, letterSpacing: '-0.015em', color: C.text, mb: 2,
-          }}>
-            {t.title}
-          </Typography>
-          <Typography sx={{ fontSize: '1rem', color: C.textMid, lineHeight: 1.75, mb: 1.5 }}>
-            {t.subheadline}
-          </Typography>
-          <Typography sx={{ fontFamily: MONO, fontSize: '0.78rem', color: C.textMute }}>
-            {t.microcopy}
-          </Typography>
-        </Box>
+        {/* ── Encabezado: info izquierda / imagen grande derecha ── */}
+        <Box sx={{
+          display: 'grid', gridTemplateColumns: { xs: '1fr', md: '0.85fr 1.15fr' },
+          gap: { xs: 6, md: 7 }, alignItems: 'center', mb: { xs: 9, md: 11 },
+        }}>
+          <Box
+            component={motion.div}
+            initial={{ opacity: 0, y: 16 }}
+            animate={isInView ? { opacity: 1, y: 0 } : {}}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <Typography sx={{ fontFamily: MONO, fontWeight: 700, fontSize: '0.72rem', letterSpacing: '0.16em', color: C.accentDk, mb: 1.5 }}>
+              {t.kicker}
+            </Typography>
+            <Typography variant="h2" sx={{
+              fontFamily: DISPLAY, fontWeight: 700, fontSize: { xs: '1.8rem', md: '2.15rem' },
+              lineHeight: 1.28, letterSpacing: '-0.015em', color: C.text, mb: 2,
+            }}>
+              {t.title}
+            </Typography>
+            <Typography sx={{ fontSize: '1rem', color: C.textMid, lineHeight: 1.75, mb: 1.5 }}>
+              {t.subheadline}
+            </Typography>
+            <Typography sx={{ fontFamily: MONO, fontSize: '0.78rem', color: C.textMute }}>
+              {t.microcopy}
+            </Typography>
+          </Box>
 
-        {/* ── Cadena viva — datos viajando entre capas ── */}
-        <Box ref={chainRef} sx={{ maxWidth: 320, mx: 'auto', mb: { xs: 9, md: 11 } }}>
-          {CHAIN.map((node, i) => (
-            <Box key={node.name}>
-              <Box
-                component={motion.div}
-                initial={{ opacity: 0, y: 10 }}
-                animate={chainInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.4, delay: i * 0.08 }}
-              >
-                <ChainNode node={node} isCore={node.name === 'AI'} />
+          <Box
+            ref={imageRef}
+            component={motion.div}
+            initial={{ opacity: 0, x: 20 }}
+            animate={isInView ? { opacity: 1, x: 0 } : {}}
+            transition={{ duration: 0.7, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            sx={{
+              bgcolor: '#FFFFFF', borderRadius: '18px', border: `1px solid ${C.border}`,
+              boxShadow: `0 30px 70px ${alpha(C.text, 0.08)}`, overflow: 'hidden',
+            }}
+          >
+            <Box sx={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              px: 3, py: 1.75, borderBottom: `1px solid ${C.border}`, bgcolor: '#F4FAFE',
+            }}>
+              <Typography sx={{ fontFamily: MONO, fontSize: '0.68rem', letterSpacing: '0.06em', textTransform: 'uppercase', color: C.textMid }}>
+                {t.imagePanelLabel}
+              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                <Box sx={{
+                  width: 6, height: 6, borderRadius: '50%', bgcolor: C.accent,
+                  animation: 'saPulseDot 2s ease-in-out infinite',
+                  '@keyframes saPulseDot': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.3 } },
+                }} />
+                <Typography sx={{ fontFamily: MONO, fontSize: '0.63rem', letterSpacing: '0.05em', textTransform: 'uppercase', color: C.accentDk, fontWeight: 600 }}>
+                  {t.imagePanelStatus}
+                </Typography>
               </Box>
-              {i < CHAIN.length - 1 && <ParticleConnector active={chainInView} />}
             </Box>
-          ))}
+            <Box sx={{ p: { xs: 3, md: 4 } }}>
+              <ArchitectureImage animate={imageInView} />
+            </Box>
+          </Box>
         </Box>
 
         {/* ── From Signal to Action ── */}
@@ -372,38 +379,22 @@ export function SystemArchitecture({ lang }: Props) {
           </Typography>
           <Box sx={{
             display: 'flex', flexDirection: { xs: 'column', md: 'row' },
-            alignItems: { xs: 'stretch', md: 'flex-start' }, justifyContent: 'center',
-            gap: { xs: 3, md: 0 },
+            alignItems: { xs: 'stretch', md: 'flex-start' }, justifyContent: 'center', gap: { xs: 3, md: 0 },
           }}>
             {SIGNAL_STEPS.map((step, i) => (
               <Box key={step.name} sx={{ display: 'flex', alignItems: { xs: 'stretch', md: 'flex-start' }, flex: 1 }}>
                 <Box sx={{ flex: 1, textAlign: 'center', px: 1 }}>
-                  <Box sx={{
-                    width: 44, height: 44, borderRadius: '50%', mx: 'auto', mb: 1.5,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    bgcolor: C.accentBg, border: `1px solid ${C.accentLine}`,
-                  }}>
-                    <step.icon size={18} color={C.accentDk} />
-                  </Box>
-                  <Typography sx={{
-                    fontFamily: DISPLAY, fontWeight: 700, fontSize: '1.05rem',
-                    color: C.text, mb: 1.25,
-                  }}>
+                  <Typography sx={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: '1rem', color: C.text, mb: 1 }}>
                     {step.name}
                   </Typography>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.4 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.3 }}>
                     {step.items.map((it) => (
-                      <Typography key={it} sx={{ fontSize: '0.76rem', color: C.textMute }}>
-                        {it}
-                      </Typography>
+                      <Typography key={it} sx={{ fontSize: '0.74rem', color: C.textMute }}>{it}</Typography>
                     ))}
                   </Box>
                 </Box>
                 {i < SIGNAL_STEPS.length - 1 && (
-                  <Box sx={{
-                    display: { xs: 'none', md: 'flex' }, alignItems: 'center', justifyContent: 'center',
-                    color: C.accentLine, fontSize: '1.2rem', px: 1, pt: 2.2,
-                  }}>
+                  <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'flex-start', justifyContent: 'center', color: C.accentLine, fontSize: '1.1rem', px: 1, pt: 0.3 }}>
                     →
                   </Box>
                 )}
@@ -434,16 +425,10 @@ export function SystemArchitecture({ lang }: Props) {
           }}>
             <FiZap size={22} color={C.accentDk} />
           </Box>
-          <Typography sx={{
-            fontFamily: DISPLAY, fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.9rem' },
-            lineHeight: 1.35, color: C.text, mb: 1,
-          }}>
+          <Typography sx={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.9rem' }, lineHeight: 1.35, color: C.text, mb: 1 }}>
             {t.closingLine1}
           </Typography>
-          <Typography sx={{
-            fontFamily: DISPLAY, fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.9rem' },
-            lineHeight: 1.35, color: C.textMid, mb: 3,
-          }}>
+          <Typography sx={{ fontFamily: DISPLAY, fontWeight: 700, fontSize: { xs: '1.5rem', md: '1.9rem' }, lineHeight: 1.35, color: C.textMid, mb: 3 }}>
             {t.closingLine2}
           </Typography>
           <Typography sx={{ fontFamily: MONO, fontSize: '0.85rem', color: C.accent, letterSpacing: '0.02em', mb: 4.5 }}>

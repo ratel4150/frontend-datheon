@@ -12,7 +12,9 @@ import WhyChooseUs from '../../../../../components/landing/WhyChooseUs'
 import Footer from '../../../../../components/landing/Footer'
 import { HeroResponsive } from '../../../../../components/landing/HeroResponsive'
 import { TechnologyEcosystem } from '../../../../../components/landing/Technologyecosystem'
-import { SystemArchitecture } from '../../../../../components/landing/Systemarchitecture'
+
+import { SystemArchitectureResponsive } from '../../../../../components/landing/SystemArchitectureResponsive'
+import { BusinessGrowthMapResponsive } from '../../../../../components/landing/Businessgrowthmapresponsive '
 
 
 type Props = {
@@ -28,7 +30,8 @@ export default async function LandingPage({ params }: Props) {
     <Box sx={{ bgcolor: 'white', minHeight: '100vh' }}>
       <HeroResponsive lang={lang} />
       <TechnologyEcosystem lang={lang} />
-      <SystemArchitecture lang={lang} />
+      <SystemArchitectureResponsive lang={lang} />
+      <BusinessGrowthMapResponsive lang={lang} />
   
         <OurServices lang={lang}/>
         <WorkProcess lang={lang}/>
