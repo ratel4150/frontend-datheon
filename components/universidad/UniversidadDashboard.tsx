@@ -3,7 +3,10 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Box, Typography, Button, alpha } from '@mui/material'
-import { FiAward, FiArrowRight, FiLogOut, FiMoon, FiSun, FiBook, FiClock, FiZap } from 'react-icons/fi'
+import {
+  FiAward, FiArrowRight, FiLogOut, FiMoon, FiSun, FiBook, FiClock, FiZap,
+  FiMessageCircle, FiPlay, FiBarChart2, FiPieChart, FiStar, FiChevronDown,
+} from 'react-icons/fi'
 import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion'
 import { useClerk } from '@clerk/nextjs'
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell } from 'recharts'
@@ -34,16 +37,16 @@ const QUOTES = [
   { text: "Los programadores del mañana son los magos del futuro.", author: "Gabe Newell" },
 ]
 
-
-// ─── Ranks (Apex style) ───────────────────────────────────────
+// ─── Ranks (Apex style) ─────────────────────────────────────
+// icon: componente de react-icons/fi (no emoji)
 const RANKS = [
-  { name: 'Bronce',   min: 0,   max: 10,  icon: '🥉', color: '#CD7F32', glow: 'rgba(205,127,50,0.4)',  next: 11  },
-  { name: 'Plata',    min: 11,  max: 30,  icon: '🥈', color: '#A8A9AD', glow: 'rgba(168,169,173,0.4)', next: 31  },
-  { name: 'Oro',      min: 31,  max: 75,  icon: '🥇', color: '#F7DF1E', glow: 'rgba(247,223,30,0.4)',  next: 76  },
-  { name: 'Platino',  min: 76,  max: 150, icon: '💎', color: '#00AEEF', glow: 'rgba(0,174,239,0.4)',   next: 151 },
-  { name: 'Diamante', min: 151, max: 300, icon: '💠', color: '#6366F1', glow: 'rgba(99,102,241,0.4)',  next: 301 },
-  { name: 'Maestro',  min: 301, max: 500, icon: '👑', color: '#A855F7', glow: 'rgba(168,85,247,0.4)',  next: 501 },
-  { name: 'Predator', min: 501, max: 9999,icon: '🔴', color: '#EF4444', glow: 'rgba(239,68,68,0.4)',   next: null},
+  { name: 'Bronce',   min: 0,   max: 10,  icon: FiAward, color: '#CD7F32', glow: 'rgba(205,127,50,0.4)',  next: 11  },
+  { name: 'Plata',    min: 11,  max: 30,  icon: FiAward, color: '#A8A9AD', glow: 'rgba(168,169,173,0.4)', next: 31  },
+  { name: 'Oro',      min: 31,  max: 75,  icon: FiAward, color: '#F7DF1E', glow: 'rgba(247,223,30,0.4)',  next: 76  },
+  { name: 'Platino',  min: 76,  max: 150, icon: FiStar,  color: '#00AEEF', glow: 'rgba(0,174,239,0.4)',   next: 151 },
+  { name: 'Diamante', min: 151, max: 300, icon: FiStar,  color: '#6366F1', glow: 'rgba(99,102,241,0.4)',  next: 301 },
+  { name: 'Maestro',  min: 301, max: 500, icon: FiStar,  color: '#A855F7', glow: 'rgba(168,85,247,0.4)',  next: 501 },
+  { name: 'Predator', min: 501, max: 9999,icon: FiZap,   color: '#EF4444', glow: 'rgba(239,68,68,0.4)',   next: null},
 ]
 
 function getRank(total: number) {
@@ -91,8 +94,10 @@ function StreakWidget({ streak, dark }: { streak: number; dark: boolean }) {
     <Box sx={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', px:3, py:2.5, border:`1px solid ${streak>0 ? 'rgba(251,146,60,0.35)' : BORDER}`, borderRadius:'16px', bgcolor: streak>0 ? 'rgba(251,146,60,0.06)' : dark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)', minWidth:110, position:'relative', overflow:'hidden' }}>
       {streak>0 && <Box sx={{ position:'absolute', inset:0, background:'radial-gradient(circle at 50% 0%, rgba(251,146,60,0.12) 0%, transparent 60%)', pointerEvents:'none' }}/>}
       <Box component={motion.div} animate={streak>0 ? { scale:[1,1.15,1], rotate:[0,5,-5,0] } : {}} transition={{ duration:1.5, repeat:Infinity, repeatDelay:2 }}
-        sx={{ fontSize:'2rem', lineHeight:1, mb:.5 }}>
-        {streak>0 ? '🔥' : '💤'}
+        sx={{ display:'flex', alignItems:'center', justifyContent:'center', mb:.5 }}>
+        {streak>0
+          ? <FiZap size={30} color="#FB923C"/>
+          : <FiMoon size={26} color={MUTED}/>}
       </Box>
       <Typography sx={{ fontWeight:900, fontSize:'1.8rem', lineHeight:1, color: streak>0 ? '#FB923C' : MUTED }}>{streak}</Typography>
       <Typography sx={{ fontSize:'0.62rem', color: streak>0 ? 'rgba(251,146,60,0.7)' : MUTED, letterSpacing:'0.08em', textTransform:'uppercase', mt:.25 }}>día{streak!==1?'s':''} racha</Typography>
@@ -108,7 +113,10 @@ function QuoteWidget({ dark }: { dark: boolean }) {
   const q     = QUOTES[idx]
   return (
     <Box sx={{ flex:1, px:3, py:2.5, border:`1px solid ${dark?'rgba(255,255,255,0.07)':'rgba(0,0,0,0.08)'}`, borderRadius:'16px', bgcolor:dark?'rgba(255,255,255,0.02)':'rgba(0,0,0,0.02)', display:'flex', flexDirection:'column', justifyContent:'center' }}>
-      <Typography sx={{ fontSize:'0.65rem', color:'#00AEEF', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:700, mb:1 }}>💬 Frase del día</Typography>
+      <Box sx={{ display:'flex', alignItems:'center', gap:.75, mb:1 }}>
+        <FiMessageCircle size={12} color="#00AEEF"/>
+        <Typography sx={{ fontSize:'0.65rem', color:'#00AEEF', letterSpacing:'0.12em', textTransform:'uppercase', fontWeight:700 }}>Frase del día</Typography>
+      </Box>
       <Typography sx={{ fontSize:'0.88rem', color:TEXT, lineHeight:1.6, fontStyle:'italic', mb:.75 }}>"{q.text}"</Typography>
       <Typography sx={{ fontSize:'0.72rem', color:MUTED }}>— {q.author}</Typography>
     </Box>
@@ -130,17 +138,20 @@ function NextSubCard({ sub, dark }: { sub: NextSub; dark: boolean }) {
           {sub.courseIcon}
         </Box>
         <Box sx={{ flex:1, minWidth:0 }}>
-          <Typography sx={{ fontSize:'0.62rem', color:sub.courseColor, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', mb:.25 }}>
-            ▶ Continúa donde dejaste
-          </Typography>
+          <Box sx={{ display:'flex', alignItems:'center', gap:.5, mb:.25 }}>
+            <FiPlay size={10} color={sub.courseColor}/>
+            <Typography sx={{ fontSize:'0.62rem', color:sub.courseColor, fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              Continúa donde dejaste
+            </Typography>
+          </Box>
           <Typography sx={{ fontSize:'0.88rem', fontWeight:700, color:dark?'#F1F5F9':'#0B0F2B', lineHeight:1.3, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
             {sub.title}
           </Typography>
           <Typography sx={{ fontSize:'0.72rem', color:dark?'rgba(255,255,255,0.4)':'#8891AA', mt:.2 }}>{sub.courseTitle}</Typography>
         </Box>
-        <Button component={Link} href={`/universidad/${sub.courseSlug}/${sub.id}`}
+        <Button component={Link} href={`/universidad/${sub.courseSlug}/${sub.id}`} endIcon={<FiArrowRight size={13}/>}
           sx={{ flexShrink:0, bgcolor:sub.courseColor, color:'#fff', fontWeight:700, textTransform:'none', borderRadius:'10px', px:2, py:.85, fontSize:'0.78rem', boxShadow:`0 4px 16px ${alpha(sub.courseColor,.35)}`, '&:hover':{ bgcolor:alpha(sub.courseColor,.85) } }}>
-          Ir →
+          Ir
         </Button>
       </Box>
     </Box>
@@ -170,8 +181,9 @@ function RecentActivity({ items, dark }: { items: RecentItem[]; dark: boolean })
         <Typography sx={{ fontSize:'0.68rem', fontWeight:700, letterSpacing:'0.1em', textTransform:'uppercase', color:MUTED }}>Actividad reciente</Typography>
       </Box>
       {items.length === 0 ? (
-        <Box sx={{ px:2.5, py:3, textAlign:'center' }}>
-          <Typography sx={{ fontSize:'0.82rem', color:MUTED }}>Completa tu primera subsección 🚀</Typography>
+        <Box sx={{ px:2.5, py:3, display:'flex', flexDirection:'column', alignItems:'center', gap:1 }}>
+          <FiPlay size={18} color={MUTED}/>
+          <Typography sx={{ fontSize:'0.82rem', color:MUTED }}>Completa tu primera subsección</Typography>
         </Box>
       ) : (
         items.map((item, i) => (
@@ -263,7 +275,6 @@ function CourseCard3D({ course, completedCount, totalSubs, certified, color, dar
   )
 }
 
-
 // ─── Rank Card ────────────────────────────────────────────────
 function RankCard({ total, dark }: { total: number; dark: boolean }) {
   const rank     = getRank(total)
@@ -273,6 +284,8 @@ function RankCard({ total, dark }: { total: number; dark: boolean }) {
     : 100
   const BORDER = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)'
   const MUTED  = dark ? 'rgba(255,255,255,0.35)' : '#8891AA'
+  const RankIcon     = rank.icon
+  const NextRankIcon = nextRank?.icon
 
   return (
     <Box sx={{ position: 'relative', border: `1px solid ${alpha(rank.color, 0.4)}`, borderRadius: '16px', overflow: 'hidden', bgcolor: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)', p: 2.5 }}>
@@ -284,8 +297,8 @@ function RankCard({ total, dark }: { total: number; dark: boolean }) {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Box component={motion.div} animate={{ scale: [1, 1.1, 1] }} transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-              sx={{ fontSize: '2.2rem', lineHeight: 1, filter: `drop-shadow(0 0 8px ${rank.color})` }}>
-              {rank.icon}
+              sx={{ display:'flex', alignItems:'center', justifyContent:'center', filter: `drop-shadow(0 0 8px ${rank.color})` }}>
+              <RankIcon size={34} color={rank.color}/>
             </Box>
             <Box>
               <Typography sx={{ fontSize: '0.6rem', fontWeight: 700, color: rank.color, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Rango actual</Typography>
@@ -299,10 +312,15 @@ function RankCard({ total, dark }: { total: number; dark: boolean }) {
         </Box>
 
         {/* Progress to next rank */}
-        {nextRank && (
+        {nextRank && NextRankIcon && (
           <Box>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
-              <Typography sx={{ fontSize: '0.65rem', color: MUTED }}>Próximo: <Box component="span" sx={{ color: nextRank.color, fontWeight: 700 }}>{nextRank.icon} {nextRank.name}</Box></Typography>
+              <Typography sx={{ fontSize: '0.65rem', color: MUTED, display:'flex', alignItems:'center', gap:.5 }}>
+                Próximo:
+                <Box component="span" sx={{ display:'inline-flex', alignItems:'center', gap:.4, color: nextRank.color, fontWeight: 700 }}>
+                  <NextRankIcon size={12}/> {nextRank.name}
+                </Box>
+              </Typography>
               <Typography sx={{ fontSize: '0.65rem', color: MUTED }}>{rank.next! - total} subsecciones para subir</Typography>
             </Box>
             <Box sx={{ height: 6, bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)', borderRadius: 3, overflow: 'hidden' }}>
@@ -312,8 +330,9 @@ function RankCard({ total, dark }: { total: number; dark: boolean }) {
           </Box>
         )}
         {!nextRank && (
-          <Box sx={{ px: 2, py: 1, bgcolor: alpha(rank.color, 0.1), border: `1px solid ${alpha(rank.color, 0.3)}`, borderRadius: '10px', textAlign: 'center' }}>
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: rank.color }}>🏆 Rango máximo alcanzado</Typography>
+          <Box sx={{ px: 2, py: 1, bgcolor: alpha(rank.color, 0.1), border: `1px solid ${alpha(rank.color, 0.3)}`, borderRadius: '10px', display:'flex', alignItems:'center', justifyContent:'center', gap:.75 }}>
+            <FiAward size={14} color={rank.color}/>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: rank.color }}>Rango máximo alcanzado</Typography>
           </Box>
         )}
 
@@ -321,9 +340,10 @@ function RankCard({ total, dark }: { total: number; dark: boolean }) {
         <Box sx={{ display: 'flex', gap: 0.75, mt: 2, flexWrap: 'wrap' }}>
           {RANKS.map(r => {
             const unlocked = total >= r.min
+            const Icon = r.icon
             return (
               <Box key={r.name} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 0.25, opacity: unlocked ? 1 : 0.25, transition: 'opacity 0.2s' }}>
-                <Typography sx={{ fontSize: '1rem', filter: unlocked ? `drop-shadow(0 0 4px ${r.color})` : 'grayscale(1)' }}>{r.icon}</Typography>
+                <Icon size={16} color={unlocked ? r.color : MUTED} style={{ filter: unlocked ? `drop-shadow(0 0 4px ${r.color})` : 'none' }}/>
                 <Typography sx={{ fontSize: '0.5rem', color: unlocked ? r.color : MUTED, fontWeight: 600, letterSpacing: '0.04em' }}>{r.name.slice(0,4).toUpperCase()}</Typography>
               </Box>
             )
@@ -380,9 +400,12 @@ function ChartsSection({ progress, courses, dark }: { progress: any[]; courses: 
 
       {/* Weekly bar chart */}
       <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', p: 2.5, bgcolor: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
-        <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, mb: 2 }}>
-          📊 Actividad últimos 7 días
-        </Typography>
+        <Box sx={{ display:'flex', alignItems:'center', gap:.75, mb:2 }}>
+          <FiBarChart2 size={13} color="#00AEEF"/>
+          <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED }}>
+            Actividad últimos 7 días
+          </Typography>
+        </Box>
         <ResponsiveContainer width="100%" height={160}>
           <BarChart data={weekData} margin={{ top: 0, right: 0, bottom: 0, left: -30 }}>
             <XAxis dataKey="day" tick={{ fill: MUTED, fontSize: 11 }} axisLine={false} tickLine={false}/>
@@ -398,9 +421,12 @@ function ChartsSection({ progress, courses, dark }: { progress: any[]; courses: 
 
       {/* Pie by course */}
       <Box sx={{ border: `1px solid ${BORDER}`, borderRadius: '16px', p: 2.5, bgcolor: dark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.02)' }}>
-        <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED, mb: 2 }}>
-          🍩 Distribución por curso
-        </Typography>
+        <Box sx={{ display:'flex', alignItems:'center', gap:.75, mb:2 }}>
+          <FiPieChart size={13} color="#00AEEF"/>
+          <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, letterSpacing: '0.1em', textTransform: 'uppercase', color: MUTED }}>
+            Distribución por curso
+          </Typography>
+        </Box>
         {pieData.length === 0 ? (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160 }}>
             <Typography sx={{ fontSize: '0.82rem', color: MUTED }}>Completa subsecciones para ver la distribución</Typography>
@@ -457,6 +483,12 @@ export function UniversidadDashboard({ user, courses, progress, certificates, st
   const MUTED  = dark ? 'rgba(255,255,255,0.35)' : '#8891AA'
   const BORDER = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.08)'
 
+  const heroStats = [
+    { label:'Completadas',  value:totalDone,           Icon:FiZap },
+    { label:'Cursos',       value:courses.length,      Icon:FiBook },
+    { label:'Certificados', value:certificates.length, Icon:FiAward },
+  ]
+
   return (
     <Box sx={{ bgcolor:BG, minHeight:'100vh', color:TEXT, transition:'all 0.4s ease', fontFamily:'Poppins, sans-serif', position:'relative', overflowX:'hidden' }}>
       <GlowOrb color="#00AEEF" size={600} top="-100px" left="-100px" opacity={.07}/>
@@ -481,7 +513,7 @@ export function UniversidadDashboard({ user, courses, progress, certificates, st
           {/* Streak badge en navbar */}
           {streak > 0 && (
             <Box sx={{ display:'flex', alignItems:'center', gap:.5, px:1.25, py:.4, bgcolor:'rgba(251,146,60,0.1)', border:'1px solid rgba(251,146,60,0.3)', borderRadius:'100px' }}>
-              <Typography sx={{ fontSize:'0.85rem' }}>🔥</Typography>
+              <FiZap size={13} color="#FB923C"/>
               <Typography sx={{ fontSize:'0.72rem', fontWeight:700, color:'#FB923C' }}>{streak}</Typography>
             </Box>
           )}
@@ -496,7 +528,7 @@ export function UniversidadDashboard({ user, courses, progress, certificates, st
                 <Typography sx={{ fontSize:'0.75rem', fontWeight:700, color:'#fff' }}>{firstName.charAt(0).toUpperCase()}</Typography>
               </Box>
               <Typography sx={{ fontSize:'0.8rem', fontWeight:500, color:MUTED, display:{xs:'none',sm:'block'} }}>{firstName}</Typography>
-              <Typography sx={{ fontSize:'0.6rem', color:MUTED }}>▾</Typography>
+              <FiChevronDown size={12} color={MUTED}/>
             </Box>
             <AnimatePresence>
               {menu && (
@@ -530,8 +562,7 @@ export function UniversidadDashboard({ user, courses, progress, certificates, st
           <Box component={motion.div} initial={{opacity:0,y:20}} animate={{opacity:1,y:0}} transition={{duration:.6}}>
             <Typography sx={{ fontSize:'0.72rem', letterSpacing:'0.15em', textTransform:'uppercase', color:'#00AEEF', mb:1, fontWeight:600 }}>Bienvenido de vuelta</Typography>
             <Typography sx={{ fontFamily:'Poppins', fontWeight:900, fontSize:{xs:'2rem',md:'3rem'}, lineHeight:1.05, mb:1 }}>
-              Hola, {firstName}{' '}
-              <Box component={motion.span} animate={{rotate:[0,15,-10,15,0]}} transition={{duration:1.5,delay:.8,repeat:Infinity,repeatDelay:4}} style={{display:'inline-block'}}>👋</Box>
+              Hola, {firstName}
             </Typography>
             <Typography sx={{ fontSize:'0.95rem', color:MUTED, maxWidth:500 }}>
               {totalDone===0?'Empieza tu primer curso hoy.':`${totalDone} subsección${totalDone!==1?'es':''} completadas. ¡Sigue así!`}
@@ -541,10 +572,10 @@ export function UniversidadDashboard({ user, courses, progress, certificates, st
           {/* Stats */}
           <Box component={motion.div} initial={{opacity:0,y:16}} animate={{opacity:1,y:0}} transition={{delay:.3,duration:.5}}
             sx={{ display:'flex', flexWrap:'wrap', gap:1.5, mt:3 }}>
-            {[{label:'Completadas',value:totalDone,icon:'⚡'},{label:'Cursos',value:courses.length,icon:'📚'},{label:'Certificados',value:certificates.length,icon:'🏆'}].map((s,i)=>(
+            {heroStats.map((s,i)=>(
               <Box key={i} component={motion.div} initial={{opacity:0,scale:.8}} animate={{opacity:1,scale:1}} transition={{delay:.4+i*.1}}
                 sx={{ display:'flex', alignItems:'center', gap:1.25, px:2, py:1, bgcolor:dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)', backdropFilter:'blur(10px)', border:`1px solid ${BORDER}`, borderRadius:'100px' }}>
-                <Typography sx={{ fontSize:'1rem' }}>{s.icon}</Typography>
+                <s.Icon size={15} color="#00AEEF"/>
                 <Typography sx={{ fontWeight:800, fontSize:'1.1rem', color:'#00AEEF', lineHeight:1 }}>{s.value}</Typography>
                 <Typography sx={{ fontSize:'0.72rem', color:MUTED }}>{s.label}</Typography>
               </Box>
@@ -561,7 +592,6 @@ export function UniversidadDashboard({ user, courses, progress, certificates, st
           <QuoteWidget dark={dark}/>
         </Box>
 
-        {/* ── Rank + Charts ── */}
         {/* ── Rank ── */}
         <Box sx={{ mb:3 }}>
           <RankCard total={totalDone} dark={dark}/>

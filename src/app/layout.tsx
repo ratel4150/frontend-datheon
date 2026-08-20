@@ -1,3 +1,4 @@
+// File: src/app/layout.tsx
 import type { ReactNode } from 'react'
 import type { Metadata } from 'next'
 import { poppins } from '@/theme/fonts'

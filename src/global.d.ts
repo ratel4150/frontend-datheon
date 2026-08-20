@@ -1,3 +1,4 @@
+// File: src/global.d.ts
 // src\global.d.ts
 export {}
 

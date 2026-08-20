@@ -16,7 +16,7 @@ import { python } from '@codemirror/lang-python'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { keymap } from '@codemirror/view'
 import { defaultKeymap, indentWithTab } from '@codemirror/commands'
-
+import { FiFileText, FiVideo, FiLink, FiMessageSquare, FiEdit3, FiAlertTriangle, FiTarget, FiZap, FiCpu } from 'react-icons/fi'
 const C = {
   bg:     '#0A0C10',
   card:   '#13161D',
@@ -29,7 +29,7 @@ const C = {
   yellow: '#F59E0B',
 } as const
 
-type Step = 'theory' | 'exercise'
+type Step = 'theory' | 'exercise' | 'pdf' | 'video' | 'recursos' | 'notas' | 'errores' | 'reto' | 'ia'
 type EvalType = 'quiz'|'lab'|'cloze'|'drag_drop'|'flashcard'|'timeline'|'decision'|'survey'|'challenge'|'mindmap'|'replit'|'github'
 
 interface TestResult { id: string; description: string; passed: boolean; error?: string }
@@ -58,6 +58,446 @@ interface Props {
   completed:   boolean
   totalSubs:   number
   completedSubs: number
+  
+}
+
+
+// ══════════════════════════════════════════════════════════
+// PDFTab
+// ══════════════════════════════════════════════════════════
+export function PDFTab({ data, color }: { data: any; color: string }) {
+  const url: string = data?.pdfUrl ?? ''
+ 
+  if (!url) return (
+    <Box sx={{ textAlign: 'center', py: 8 }}>
+      <Typography sx={{ fontSize: '2.5rem', mb: 2 }}>📄</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.88rem', mb: 0.5 }}>
+        No hay PDF para esta subsección
+      </Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', fontFamily: 'monospace' }}>
+        {'Agrega pdfUrl en eval_data'}
+      </Typography>
+    </Box>
+  )
+ 
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ border: `1px solid ${C.border}`, borderRadius: '12px', overflow: 'hidden', height: 480 }}>
+        <Box component="iframe"
+          src={`${url}#toolbar=0`}
+          title="PDF de la subsección"
+          sx={{ width: '100%', height: '100%', border: 'none', display: 'block' }}
+        />
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1.5 }}>
+        <Button component="a" href={url} target="_blank" download variant="contained"
+          sx={{ bgcolor: '#A855F7', color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha('#A855F7', 0.85) } }}>
+          📥 Descargar PDF
+        </Button>
+        <Button component="a" href={url} target="_blank" variant="outlined"
+          sx={{ borderColor: alpha('#A855F7', 0.4), color: '#A855F7', fontWeight: 600, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha('#A855F7', 0.08) } }}>
+          Abrir en nueva pestaña ↗
+        </Button>
+      </Box>
+    </Box>
+  )
+}
+
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: VideoTab
+// ══════════════════════════════════════════════════════════
+function VideoTab({ data, color }: { data: any; color: string }) {
+  const url: string = data?.videoUrl ?? ''
+  const getEmbedUrl = (u: string) => {
+    if (!u) return ''
+    const yt = u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/)
+    if (yt) return `https://www.youtube-nocookie.com/embed/${yt[1]}?rel=0&modestbranding=1`
+    const vm = u.match(/vimeo\.com\/(\d+)/)
+    if (vm) return `https://player.vimeo.com/video/${vm[1]}`
+    return u
+  }
+  const embed = getEmbedUrl(url)
+ 
+  if (!url) return (
+    <Box sx={{ textAlign: 'center', py: 8 }}>
+      <Typography sx={{ fontSize: '2.5rem', mb: 2 }}>🎬</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.88rem', mb: 0.5 }}>No hay video para esta subsección</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', fontFamily: 'monospace' }}>Agrega videoUrl en eval_data</Typography>
+    </Box>
+  )
+ 
+  return (
+    <Box>
+      {data?.videoTitle && (
+        <Typography sx={{ fontWeight: 700, fontSize: '1rem', mb: 1.5, color: '#F1F5F9' }}>{data.videoTitle}</Typography>
+      )}
+      <Box sx={{ position: 'relative', paddingTop: '56.25%', borderRadius: '12px', overflow: 'hidden', bgcolor: '#000', border: '1px solid rgba(255,255,255,0.07)' }}>
+        <Box component="iframe" src={embed} title="Video de la subsección"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          sx={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}/>
+      </Box>
+      {data?.videoDescription && (
+        <Box sx={{ mt: 2, p: 2, bgcolor: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.6)', lineHeight: 1.7 }}>{data.videoDescription}</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+ 
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: RecursosTab
+// ══════════════════════════════════════════════════════════
+function RecursosTab({ data, color }: { data: any; color: string }) {
+  const recursos: any[] = data?.recursos ?? []
+  if (!recursos.length) return (
+    <Box sx={{ textAlign: 'center', py: 8 }}>
+      <Typography sx={{ fontSize: '2.5rem', mb: 2 }}>🔗</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.88rem' }}>No hay recursos para esta subsección</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', fontFamily: 'monospace', mt: 0.5 }}>{'Agrega recursos: [{tipo, titulo, url, descripcion}] en eval_data'}</Typography>
+    </Box>
+  )
+ 
+  const TYPE_ICON: Record<string, string> = { docs: '📚', video: '🎬', articulo: '📰', tool: '🛠️', github: '🐙', ejercicio: '💻', libro: '📖' }
+  const TYPE_COLOR: Record<string, string> = { docs: '#00AEEF', video: '#EF4444', articulo: '#F59E0B', tool: '#22C55E', github: '#6366F1', ejercicio: '#A855F7', libro: '#EC4899' }
+ 
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.12em', textTransform: 'uppercase', mb: 0.5 }}>
+        {recursos.length} recursos curados
+      </Typography>
+      {recursos.map((r: any, i: number) => {
+        const ic = TYPE_ICON[r.tipo] ?? '🔗'
+        const cl = TYPE_COLOR[r.tipo] ?? color
+        return (
+          <Box key={i} component="a" href={r.url} target="_blank" rel="noopener noreferrer"
+            sx={{ display: 'flex', alignItems: 'flex-start', gap: 2, p: 2, textDecoration: 'none',
+              border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px',
+              bgcolor: 'rgba(255,255,255,0.02)', transition: 'all 0.2s',
+              '&:hover': { borderColor: alpha(cl, 0.4), bgcolor: alpha(cl, 0.05), transform: 'translateX(4px)' } }}>
+            <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: alpha(cl, 0.12), border: `1px solid ${alpha(cl, 0.25)}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem', flexShrink: 0 }}>
+              {ic}
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.25 }}>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, color: '#F1F5F9' }}>{r.titulo}</Typography>
+                {r.tipo && <Box sx={{ px: 0.75, py: 0.1, bgcolor: alpha(cl, 0.1), border: `1px solid ${alpha(cl, 0.25)}`, borderRadius: '4px' }}>
+                  <Typography sx={{ fontSize: '0.58rem', fontWeight: 700, color: cl, letterSpacing: '0.08em', textTransform: 'uppercase' }}>{r.tipo}</Typography>
+                </Box>}
+              </Box>
+              {r.descripcion && <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', lineHeight: 1.5 }}>{r.descripcion}</Typography>}
+              <Typography sx={{ fontSize: '0.65rem', color: 'rgba(255,255,255,0.2)', mt: 0.5, fontFamily: 'monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {r.url}
+              </Typography>
+            </Box>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+}
+ 
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: ErroresTab
+// ══════════════════════════════════════════════════════════
+function ErroresTab({ data, color }: { data: any; color: string }) {
+  const errores: any[] = data?.erroresFrecuentes ?? []
+  if (!errores.length) return (
+    <Box sx={{ textAlign: 'center', py: 8 }}>
+      <Typography sx={{ fontSize: '2.5rem', mb: 2 }}>⚠️</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.88rem' }}>No hay errores documentados aún</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', fontFamily: 'monospace', mt: 0.5 }}> {'Agrega erroresFrecuentes: [{error, solucion, ejemplo}] en eval_data'}</Typography>
+    </Box>
+  )
+ 
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ px: 2, py: 1.25, bgcolor: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Typography sx={{ fontSize: '1rem' }}>⚠️</Typography>
+        <Typography sx={{ fontSize: '0.8rem', color: 'rgba(239,68,68,0.8)', lineHeight: 1.5 }}>
+          Estos son los errores más comunes que cometen los estudiantes en este tema. ¡Léelos antes de hacer el ejercicio!
+        </Typography>
+      </Box>
+      {errores.map((e: any, i: number) => (
+        <Box key={i} sx={{ border: '1px solid rgba(239,68,68,0.2)', borderRadius: '12px', overflow: 'hidden' }}>
+          <Box sx={{ px: 2.5, py: 1.5, bgcolor: 'rgba(239,68,68,0.06)', borderBottom: '1px solid rgba(239,68,68,0.15)', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <Box sx={{ width: 22, height: 22, borderRadius: '50%', bgcolor: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+              <Typography sx={{ fontSize: '0.7rem', fontWeight: 800, color: '#EF4444' }}>{i+1}</Typography>
+            </Box>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#EF4444' }}>{e.error}</Typography>
+          </Box>
+          <Box sx={{ p: 2.5 }}>
+            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#22C55E', letterSpacing: '0.08em', textTransform: 'uppercase', mb: 0.75 }}>✅ Solución</Typography>
+            <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, mb: e.ejemplo ? 1.5 : 0 }}>{e.solucion}</Typography>
+            {e.ejemplo && (
+              <Box sx={{ bgcolor: '#161b22', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '8px', p: 1.5 }}>
+                <Typography sx={{ fontSize: '0.72rem', color: '#79c0ff', fontFamily: '"Fira Code", monospace', whiteSpace: 'pre', overflowX: 'auto' }}>
+                  {e.ejemplo}
+                </Typography>
+              </Box>
+            )}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  )
+}
+ 
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: RetoTab
+// ══════════════════════════════════════════════════════════
+function RetoTab({ data, color, subsectionId, userId }: { data: any; color: string; subsectionId: string; userId: string }) {
+  const [code, setCode]           = useState(data?.retoExtra?.starterCode ?? '// Tu reto extra aquí\n')
+  const [submitted, setSubmitted] = useState(false)
+  const reto = data?.retoExtra
+ 
+  if (!reto) return (
+    <Box sx={{ textAlign: 'center', py: 8 }}>
+      <Typography sx={{ fontSize: '2.5rem', mb: 2 }}>🎯</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.88rem' }}>No hay reto extra para esta subsección</Typography>
+      <Typography sx={{ color: 'rgba(255,255,255,0.2)', fontSize: '0.75rem', fontFamily: 'monospace', mt: 0.5 }}>   {'Agrega retoExtra: {titulo, descripcion, starterCode, nivel} en eval_data'}</Typography>
+    </Box>
+  )
+ 
+  const nivelColor = reto.nivel === 'avanzado' ? '#EF4444' : reto.nivel === 'medio' ? '#F59E0B' : '#22C55E'
+  const nivelLabel = reto.nivel === 'avanzado' ? '🔴 Avanzado' : reto.nivel === 'medio' ? '🟡 Intermedio' : '🟢 Básico'
+ 
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography sx={{ fontWeight: 800, fontSize: '1rem', color: '#F1F5F9' }}>{reto.titulo ?? 'Reto extra'}</Typography>
+        <Box sx={{ px: 1.25, py: 0.4, bgcolor: alpha(nivelColor, 0.1), border: `1px solid ${alpha(nivelColor, 0.3)}`, borderRadius: '100px' }}>
+          <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: nivelColor }}>{nivelLabel}</Typography>
+        </Box>
+      </Box>
+ 
+      {reto.descripcion && (
+        <Box sx={{ fontSize: '0.85rem', lineHeight: 1.75, color: 'rgba(255,255,255,0.7)',
+          '& p': { mb: 1.5 }, '& ol,& ul': { pl: 2.5 }, '& li': { mb: 0.5 },
+          '& code': { bgcolor: 'rgba(255,255,255,0.08)', px: 0.6, borderRadius: '4px', fontFamily: 'monospace', color: '#79c0ff' }
+        }} dangerouslySetInnerHTML={{ __html: reto.descripcion }}/>
+      )}
+ 
+      <Box sx={{ border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', overflow: 'hidden', height: 260 }}>
+        <Box sx={{ px: 2, py: 0.75, bgcolor: '#0d0f14', borderBottom: '1px solid rgba(255,255,255,0.07)', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', gap: 0.5 }}>
+            {['#EF4444','#F59E0B','#22C55E'].map(c => <Box key={c} sx={{ width: 9, height: 9, borderRadius: '50%', bgcolor: c }}/>)}
+          </Box>
+          <Typography sx={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', fontFamily: 'monospace' }}>reto.js</Typography>
+          <Box sx={{ ml: 'auto', px: 1, py: 0.2, bgcolor: alpha(nivelColor, 0.1), borderRadius: '4px' }}>
+            <Typography sx={{ fontSize: '0.6rem', color: nivelColor, fontWeight: 700 }}>OPCIONAL</Typography>
+          </Box>
+        </Box>
+        <Box sx={{ height: 'calc(100% - 32px)', '& .cm-editor': { height: '100%' } }}>
+          <CodeEditor code={code} onChange={setCode} lang="javascript"/>
+        </Box>
+      </Box>
+ 
+      {!submitted ? (
+        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <Button onClick={() => setSubmitted(true)} variant="contained" disabled={code === reto.starterCode}
+            sx={{ bgcolor: color, color: '#fff', fontWeight: 700, textTransform: 'none', borderRadius: '10px', '&:hover': { bgcolor: alpha(color, 0.85) }, '&.Mui-disabled': { bgcolor: alpha(color, 0.25), color: 'rgba(255,255,255,0.3)' } }}>
+            🎯 Entregar reto extra
+          </Button>
+          <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.3)' }}>Opcional — no afecta tu progreso</Typography>
+        </Box>
+      ) : (
+        <Box sx={{ px: 2, py: 1.5, bgcolor: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.3)', borderRadius: '10px' }}>
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#22C55E' }}>🏆 ¡Reto extra completado! Eres del 10% que va más lejos.</Typography>
+        </Box>
+      )}
+    </Box>
+  )
+}
+ 
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: NotasTab
+// ══════════════════════════════════════════════════════════
+function NotasTab({ subsectionId, userId, color }: { subsectionId: string; userId: string; color: string }) {
+  const [notas, setNotas]     = useState('')
+  const [saved, setSaved]     = useState(false)
+  const [loading, setLoading] = useState(true)
+  const timerRef = useRef<any>(null)
+ 
+  useEffect(() => {
+    // Cargar notas guardadas
+    fetch(`/api/universidad/notas?subsectionId=${subsectionId}`)
+      .then(r => r.json())
+      .then(d => { setNotas(d.notas ?? ''); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [subsectionId])
+ 
+  const handleChange = (val: string) => {
+    setNotas(val); setSaved(false)
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(async () => {
+      await fetch('/api/universidad/notas', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ subsectionId, notas: val }) })
+      setSaved(true)
+    }, 1000)
+  }
+ 
+  const handleExport = () => {
+    const blob = new Blob([notas], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `notas-${subsectionId}.txt`; a.click()
+    URL.revokeObjectURL(url)
+  }
+ 
+  if (loading) return <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 4 }}><CircularProgress size={16} sx={{ color: color }}/><Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.4)' }}>Cargando notas...</Typography></Box>
+ 
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Typography sx={{ fontSize: '0.68rem', fontWeight: 700, color: 'rgba(255,255,255,0.3)', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+          📝 Tus notas personales — guardado automático
+        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          {saved && <Typography sx={{ fontSize: '0.68rem', color: '#22C55E' }}>✓ Guardado</Typography>}
+          {notas.trim() && (
+            <Button size="small" onClick={handleExport} sx={{ fontSize: '0.68rem', color: 'rgba(255,255,255,0.4)', textTransform: 'none', '&:hover': { color: color } }}>
+              Exportar .txt
+            </Button>
+          )}
+        </Box>
+      </Box>
+      <Box component="textarea"
+        value={notas}
+        onChange={(e: any) => handleChange(e.target.value)}
+        placeholder={"Escribe tus notas aquí...\n\n• Conceptos importantes\n• Ejemplos propios\n• Preguntas para investigar\n• Conexiones con otros temas"}
+        sx={{ width: '100%', minHeight: 280, p: 2, bgcolor: 'rgba(255,255,255,0.03)', border: `1px solid rgba(255,255,255,0.07)`, borderRadius: '12px', color: '#F1F5F9', fontSize: '0.88rem', fontFamily: 'inherit', outline: 'none', resize: 'vertical', lineHeight: 1.8, '&:focus': { borderColor: alpha(color, 0.4), bgcolor: 'rgba(255,255,255,0.04)' }, transition: 'all 0.2s' }}
+      />
+      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+        {['• Importante: ', '• Ejemplo: ', '• Pregunta: ', '• TODO: ', '⚡ Truco: '].map(t => (
+          <Box key={t} onClick={() => handleChange(notas + '\n' + t)}
+            sx={{ px: 1.25, py: 0.5, bgcolor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '100px', cursor: 'pointer', fontSize: '0.72rem', color: 'rgba(255,255,255,0.4)', '&:hover': { borderColor: alpha(color, 0.4), color: color } }}>
+            {t}
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  )
+}
+ 
+// ══════════════════════════════════════════════════════════
+// COMPONENTE: TutorIA
+// ══════════════════════════════════════════════════════════
+function TutorIA({ subsection, color, userId }: { subsection: any; color: string; userId: string }) {
+  const [messages, setMessages] = useState<{role:'user'|'assistant', content:string}[]>([
+    { role: 'assistant', content: `¡Hola! Soy tu tutor de IA para **${subsection.title?.es}**. Puedo explicarte conceptos, revisar tu código, darte ejemplos adicionales o responder cualquier duda. ¿En qué te ayudo?` }
+  ])
+  const [input, setInput]       = useState('')
+  const [loading, setLoading]   = useState(false)
+  const bottomRef               = useRef<HTMLDivElement>(null)
+ 
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }) }, [messages])
+ 
+  const send = async () => {
+    if (!input.trim() || loading) return
+    const userMsg = input.trim(); setInput(''); setLoading(true)
+    setMessages(prev => [...prev, { role: 'user', content: userMsg }])
+ 
+    try {
+      const res = await fetch('/api/universidad/tutor', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          messages: [...messages, { role: 'user', content: userMsg }],
+          subsectionTitle: subsection.title?.es,
+          theory: subsection.theory?.es,
+        })
+      })
+      const data = await res.json()
+      setMessages(prev => [...prev, { role: 'assistant', content: data.reply ?? 'Error al responder.' }])
+    } catch {
+      setMessages(prev => [...prev, { role: 'assistant', content: 'Error de conexión. Intenta de nuevo.' }])
+    } finally { setLoading(false) }
+  }
+ 
+  return (
+    <Box sx={{ display: 'flex', flexDirection: 'column', height: 420, border: '1px solid rgba(255,255,255,0.07)', borderRadius: '12px', overflow: 'hidden' }}>
+      {/* Header */}
+      <Box sx={{ px: 2, py: 1.25, borderBottom: '1px solid rgba(255,255,255,0.07)', bgcolor: '#0d0f14', display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <Box sx={{ width: 28, height: 28, borderRadius: '8px', background: `linear-gradient(135deg, ${color}, #6366F1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 10px ${alpha(color, 0.3)}` }}>
+          <Typography sx={{ fontSize: '0.85rem' }}>🤖</Typography>
+        </Box>
+        <Box>
+          <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#F1F5F9' }}>Tutor IA</Typography>
+          <Typography sx={{ fontSize: '0.62rem', color: 'rgba(255,255,255,0.35)' }}>Especializado en {subsection.title?.es}</Typography>
+        </Box>
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#22C55E', animation: 'pulse 2s infinite', '@keyframes pulse': { '0%,100%': { opacity: 1 }, '50%': { opacity: 0.4 } } }}/>
+          <Typography sx={{ fontSize: '0.62rem', color: '#22C55E' }}>En línea</Typography>
+        </Box>
+      </Box>
+ 
+      {/* Messages */}
+      <Box sx={{ flex: 1, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 1.5, scrollbarWidth: 'thin', scrollbarColor: 'rgba(255,255,255,0.08) transparent' }}>
+        {messages.map((m, i) => (
+          <Box key={i} sx={{ display: 'flex', flexDirection: m.role === 'user' ? 'row-reverse' : 'row', gap: 1, alignItems: 'flex-end' }}>
+            {m.role === 'assistant' && (
+              <Box sx={{ width: 22, height: 22, borderRadius: '6px', background: `linear-gradient(135deg, ${color}, #6366F1)`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Typography sx={{ fontSize: '0.65rem' }}>🤖</Typography>
+              </Box>
+            )}
+            <Box sx={{ maxWidth: '78%', px: 1.75, py: 1.25, borderRadius: m.role === 'user' ? '14px 14px 4px 14px' : '14px 14px 14px 4px',
+              bgcolor: m.role === 'user' ? alpha(color, 0.2) : 'rgba(255,255,255,0.05)',
+              border: `1px solid ${m.role === 'user' ? alpha(color, 0.35) : 'rgba(255,255,255,0.07)'}` }}>
+              <Typography sx={{ fontSize: '0.82rem', color: '#F1F5F9', lineHeight: 1.65, whiteSpace: 'pre-wrap',
+                '& code': { bgcolor: 'rgba(255,255,255,0.1)', px: 0.5, borderRadius: '4px', fontFamily: 'monospace', fontSize: '0.78rem', color: '#79c0ff' }
+              }}>
+                {m.content.replace(/\*\*(.*?)\*\*/g, '$1').replace(/`(.*?)`/g, '$1')}
+              </Typography>
+            </Box>
+          </Box>
+        ))}
+        {loading && (
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+            <Box sx={{ width: 22, height: 22, borderRadius: '6px', background: `linear-gradient(135deg, ${color}, #6366F1)`, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Typography sx={{ fontSize: '0.65rem' }}>🤖</Typography>
+            </Box>
+            <Box sx={{ px: 1.75, py: 1, bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: '14px 14px 14px 4px', display: 'flex', gap: 0.5 }}>
+              {[0,1,2].map(i => <Box key={i} sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: color, animation: `bounce 1s infinite ${i*0.15}s`, '@keyframes bounce': { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-4px)' } } }}/>)}
+            </Box>
+          </Box>
+        )}
+        <div ref={bottomRef}/>
+      </Box>
+ 
+      {/* Suggested questions */}
+      {messages.length === 1 && (
+        <Box sx={{ px: 2, pb: 1, display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+          {[
+            `Explícame ${subsection.title?.es} con un ejemplo`,
+            '¿Cuáles son los errores más comunes?',
+            'Dame un ejercicio adicional',
+            '¿Cómo se usa en la vida real?',
+          ].map(q => (
+            <Box key={q} onClick={() => { setInput(q); }}
+              sx={{ px: 1.25, py: 0.5, bgcolor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '100px', cursor: 'pointer', fontSize: '0.7rem', color: 'rgba(255,255,255,0.5)', transition: 'all 0.15s', '&:hover': { borderColor: alpha(color, 0.4), color: color } }}>
+              {q}
+            </Box>
+          ))}
+        </Box>
+      )}
+ 
+      {/* Input */}
+      <Box sx={{ px: 2, py: 1.5, borderTop: '1px solid rgba(255,255,255,0.07)', bgcolor: '#0d0f14', display: 'flex', gap: 1 }}>
+        <Box component="input"
+          value={input}
+          onChange={(e: any) => setInput(e.target.value)}
+          onKeyDown={(e: any) => e.key === 'Enter' && !e.shiftKey && send()}
+          placeholder="Pregunta cualquier cosa sobre este tema..."
+          sx={{ flex: 1, bgcolor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', px: 1.5, py: 0.85, color: '#F1F5F9', fontSize: '0.82rem', fontFamily: 'inherit', outline: 'none', '&:focus': { borderColor: alpha(color, 0.4) }, transition: 'border-color 0.2s' }}
+        />
+        <Box onClick={send}
+          sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: loading || !input.trim() ? 'rgba(255,255,255,0.05)' : color, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: loading || !input.trim() ? 'default' : 'pointer', transition: 'all 0.2s', flexShrink: 0, '&:hover': loading || !input.trim() ? {} : { bgcolor: alpha(color, 0.85) } }}>
+          {loading ? <CircularProgress size={14} sx={{ color: 'rgba(255,255,255,0.4)' }}/> : <Typography sx={{ fontSize: '0.85rem' }}>↑</Typography>}
+        </Box>
+      </Box>
+    </Box>
+  )
 }
 
 // ─── CodeMirror ───────────────────────────────────────────────
@@ -960,6 +1400,11 @@ export function SubseccionPlayer({
   const [localDone,  setLocalDone] = useState(completedSubs)
   const [alertPct,   setAlertPct]  = useState(0)
   const [showAlert,  setShowAlert] = useState(false)
+  const [notas, setNotas] = useState<string>('')
+const [notasSaved, setNotasSaved] = useState(false)
+const [iaMessages, setIaMessages] = useState<{role:'user'|'assistant', content:string}[]>([])
+const [iaInput, setIaInput] = useState('')
+const [iaLoading, setIaLoading] = useState(false)
 
   const pct = totalSubs > 0 ? Math.round((localDone / totalSubs) * 100) : 0
 
@@ -1125,29 +1570,83 @@ export function SubseccionPlayer({
         </Box>
       </Box>
 
+
       {/* ── Tabs ── */}
-      <Box sx={{ display: 'flex', borderBottom: `1px solid ${C.border}`, flexShrink: 0 }}>
-        {(['theory', 'exercise'] as Step[]).map(s => {
-          const active = step === s
-          const done   = s === 'theory' ? theoryDone : completed
-          const label  = s === 'theory' ? 'Teoría' : isLab ? 'Lab' : 'Ejercicio'
-          const Icon   = s === 'theory' ? FiBookOpen : FiCode
+      <Box sx={{
+        display: 'flex', alignItems: 'center',
+        borderBottom: `1px solid ${C.border}`,
+        flexShrink: 0,
+        bgcolor: 'rgba(6,8,16,0.6)',
+        overflowX: 'auto',
+        scrollbarWidth: 'none',
+        '&::-webkit-scrollbar': { display: 'none' },
+      }}>
+        {([
+          { id: 'theory',   label: 'Teoría',                    icon: '📖', c: color,      locked: false,        done: theoryDone },
+          { id: 'exercise', label: isLab ? 'Lab' : 'Ejercicio', icon: isLab ? '💻' : '✏️', c: color, locked: !theoryDone, done: completed },
+          { id: 'video',    label: 'Video',    icon: '🎬', c: '#EF4444', locked: false, done: false },
+          { id: 'pdf',      label: 'PDF',      icon: '📄', c: '#EC4899', locked: false, done: false },
+          { id: 'recursos', label: 'Recursos', icon: '🔗', c: '#00AEEF', locked: false, done: false },
+          { id: 'errores',  label: 'Errores',  icon: '⚠️', c: '#F59E0B', locked: false, done: false },
+          { id: 'reto',     label: 'Reto +',   icon: '🎯', c: '#22C55E', locked: false, done: false },
+          { id: 'notas',    label: 'Notas',    icon: '📝', c: '#A855F7', locked: false, done: false },
+          { id: 'ia',       label: 'Tutor IA', icon: '🤖', c: '#6366F1', locked: false, done: false },
+        ] as const).map((tab: any) => {
+          const active = step === tab.id
           return (
-            <Box key={s} onClick={() => (s === 'theory' || theoryDone) && setStep(s)}
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.75, px: 2.5, py: 1.25, cursor: (s === 'exercise' && !theoryDone) ? 'not-allowed' : 'pointer', borderBottom: `2px solid ${active ? color : 'transparent'}`, color: active ? color : done ? C.muted : 'rgba(255,255,255,0.25)', transition: 'all 0.15s', opacity: (s === 'exercise' && !theoryDone) ? 0.4 : 1 }}>
-              <Icon size={13}/>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: active ? 700 : 400 }}>{label}</Typography>
-              {done && <FiCheck size={11} color={C.green}/>}
+            <Box key={tab.id}
+              onClick={() => !tab.locked && setStep(tab.id as any)}
+              sx={{
+                display: 'flex', alignItems: 'center', gap: 0.75,
+                px: 2, py: 1.25, flexShrink: 0,
+                cursor: tab.locked ? 'not-allowed' : 'pointer',
+                borderBottom: `2px solid ${active ? tab.c : 'transparent'}`,
+                color: active ? tab.c : 'rgba(255,255,255,0.3)',
+                opacity: tab.locked ? 0.35 : 1,
+                transition: 'all 0.15s',
+                position: 'relative',
+                '&:hover': tab.locked ? {} : {
+                  color: active ? tab.c : 'rgba(255,255,255,0.6)',
+                  bgcolor: alpha(tab.c, 0.04),
+                },
+              }}>
+              <Typography sx={{ fontSize: '0.88rem', lineHeight: 1 }}>{tab.icon}</Typography>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: active ? 700 : 400, whiteSpace: 'nowrap' }}>
+                {tab.label}
+              </Typography>
+              {tab.done && (
+                <Box sx={{
+                  width: 12, height: 12, borderRadius: '50%',
+                  bgcolor: alpha('#22C55E', 0.15),
+                  border: '1px solid rgba(34,197,94,0.4)',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                }}>
+                  <FiCheck size={7} color="#22C55E"/>
+                </Box>
+              )}
+              {tab.locked && (
+                <Typography sx={{ fontSize: '0.6rem', opacity: 0.5 }}>🔒</Typography>
+              )}
             </Box>
           )
         })}
-        {/* Botón de ayuda */}
-        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', pr: 2 }}>
-          <Button size="small" startIcon={<FiHelpCircle size={13}/>}
-            onClick={() => setShowHint(h => !h)}
-            sx={{ fontSize: '0.75rem', color: showHint ? color : C.muted, textTransform: 'none', '&:hover': { color: color } }}>
-            {showHint ? 'Ocultar pista' : 'Pista'}
-          </Button>
+
+        {/* Pista — siempre al final */}
+        <Box sx={{ ml: 'auto', display: 'flex', alignItems: 'center', pr: 1.5, flexShrink: 0 }}>
+          <Box onClick={() => setShowHint(h => !h)}
+            sx={{
+              display: 'flex', alignItems: 'center', gap: 0.75,
+              px: 1.5, py: 0.6, borderRadius: '8px', cursor: 'pointer',
+              border: `1px solid ${showHint ? alpha(color, 0.4) : 'rgba(255,255,255,0.07)'}`,
+              bgcolor: showHint ? alpha(color, 0.08) : 'transparent',
+              color: showHint ? color : C.muted, transition: 'all 0.15s',
+              '&:hover': { borderColor: alpha(color, 0.4), color },
+            }}>
+            <FiHelpCircle size={12}/>
+            <Typography sx={{ fontSize: '0.72rem', fontWeight: showHint ? 600 : 400 }}>
+              {showHint ? 'Ocultar' : 'Pista'}
+            </Typography>
+          </Box>
         </Box>
       </Box>
 
@@ -1188,7 +1687,13 @@ export function SubseccionPlayer({
               <Typography sx={{ color: C.muted, mt: 2, fontSize: '0.88rem' }}>Lee el contenido y pasa al ejercicio.</Typography>
             )}
           </>
-        )}
+        )} {step === 'video'    && <VideoTab   data={subsection.evalData} color={color}/>}
+        {step === 'recursos' && <RecursosTab data={subsection.evalData} color={color}/>}
+        {step === 'errores'  && <ErroresTab  data={subsection.evalData} color={color}/>}
+        {step === 'reto'     && <RetoTab     data={subsection.evalData} color={color} subsectionId={subsection.id} userId={userId}/>}
+        {step === 'notas'    && <NotasTab    subsectionId={subsection.id} userId={userId} color={color}/>}
+        {step === 'ia'       && <TutorIA     subsection={subsection} color={color} userId={userId}/>}
+        {step === 'pdf'      && <PDFTab      data={subsection.evalData} color={color}/>}
 
         {/* Exercise */}
         {step === 'exercise' && (
