@@ -12,7 +12,7 @@ import {
 } from 'react-icons/fi'
 import { Message, useChat } from 'ai/react'
 import { usePathname } from 'next/navigation'
-import { useRef, useEffect, useState, useCallback, useLayoutEffect, useMemo } from 'react'
+import { Fragment, useRef, useEffect, useState, useCallback, useLayoutEffect, useMemo } from 'react'
 import { motion, AnimatePresence, type Transition } from 'framer-motion'
 
 const C = {
@@ -200,6 +200,123 @@ function matchFaq(lang: string, text: string): string | null {
   return null
 }
 
+// Markdown ligero + autolink, sin dependencias nuevas: **negritas**, `code`,
+// URLs con esquema, dominios conocidos sueltos (calendly.com/..., datheon.com)
+// y emails se vuelven clicables; "- "/"1. " al inicio de línea arma listas.
+const INLINE_REGEX = /(\*\*[^*]+\*\*)|(`[^`]+`)|(https?:\/\/[^\s)]+)|([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.(?:com|io|dev|net|org|co|mx|app)(?:\/[^\s)]*)?)|([\w.+-]+@[\w-]+\.[\w.-]+)/g
+
+function renderInline(text: string, keyPrefix: string): React.ReactNode[] {
+  const nodes: React.ReactNode[] = []
+  let lastIndex = 0
+  let i = 0
+  let match: RegExpExecArray | null
+  INLINE_REGEX.lastIndex = 0
+  while ((match = INLINE_REGEX.exec(text)) !== null) {
+    if (match.index > lastIndex) nodes.push(text.slice(lastIndex, match.index))
+    const [full, bold, code, url, domain, email] = match
+    const key = `${keyPrefix}-${i++}`
+    if (bold) {
+      nodes.push(<strong key={key}>{bold.slice(2, -2)}</strong>)
+    } else if (code) {
+      nodes.push(
+        <code key={key} style={{ background: C.accentBg, padding: '1px 5px', borderRadius: 4, fontSize: '0.85em' }}>
+          {code.slice(1, -1)}
+        </code>
+      )
+    } else if (url) {
+      nodes.push(
+        <a key={key} href={url} target="_blank" rel="noopener noreferrer" style={{ color: C.accentDk }}>
+          {url}
+        </a>
+      )
+    } else if (domain) {
+      nodes.push(
+        <a key={key} href={`https://${domain}`} target="_blank" rel="noopener noreferrer" style={{ color: C.accentDk }}>
+          {domain}
+        </a>
+      )
+    } else if (email) {
+      nodes.push(
+        <a key={key} href={`mailto:${email}`} style={{ color: C.accentDk }}>
+          {email}
+        </a>
+      )
+    }
+    lastIndex = match.index + full.length
+  }
+  if (lastIndex < text.length) nodes.push(text.slice(lastIndex))
+  return nodes
+}
+
+function renderMessageContent(content: string): React.ReactNode[] {
+  const lines = content.split('\n')
+  const blocks: React.ReactNode[] = []
+  let listBuffer: string[] = []
+  let listType: 'ul' | 'ol' | null = null
+
+  const flushList = (key: string) => {
+    if (!listBuffer.length) return
+    const items = listBuffer
+    blocks.push(
+      listType === 'ol'
+        ? <ol key={key} style={{ margin: '4px 0', paddingLeft: '1.2em' }}>
+            {items.map((item, idx) => <li key={idx} style={{ marginBottom: 2 }}>{renderInline(item, `${key}-${idx}`)}</li>)}
+          </ol>
+        : <ul key={key} style={{ margin: '4px 0', paddingLeft: '1.2em' }}>
+            {items.map((item, idx) => <li key={idx} style={{ marginBottom: 2 }}>{renderInline(item, `${key}-${idx}`)}</li>)}
+          </ul>
+    )
+    listBuffer = []
+    listType = null
+  }
+
+  lines.forEach((line, idx) => {
+    const bulletMatch = /^\s*[-*]\s+(.*)/.exec(line)
+    const numberedMatch = /^\s*\d+[.)]\s+(.*)/.exec(line)
+    if (bulletMatch) {
+      if (listType === 'ol') flushList(`list-${idx}`)
+      listType = 'ul'
+      listBuffer.push(bulletMatch[1])
+    } else if (numberedMatch) {
+      if (listType === 'ul') flushList(`list-${idx}`)
+      listType = 'ol'
+      listBuffer.push(numberedMatch[1])
+    } else {
+      flushList(`list-${idx}`)
+      if (line.trim() === '') {
+        blocks.push(<div key={`sp-${idx}`} style={{ height: 4 }} />)
+      } else {
+        blocks.push(<div key={`p-${idx}`}>{renderInline(line, `p-${idx}`)}</div>)
+      }
+    }
+  })
+  flushList('list-end')
+  return blocks
+}
+
+function isSameDay(a: number, b: number) {
+  const da = new Date(a), db = new Date(b)
+  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()
+}
+
+const dayLabels: Record<string, { today: string; yesterday: string }> = {
+  es: { today: 'Hoy', yesterday: 'Ayer' },
+  en: { today: 'Today', yesterday: 'Yesterday' },
+  fr: { today: "Aujourd'hui", yesterday: 'Hier' },
+}
+
+function formatDateLabel(ms: number, lang: string) {
+  const now = Date.now()
+  const labels = dayLabels[lang] ?? dayLabels.es
+  if (isSameDay(ms, now)) return labels.today
+  if (isSameDay(ms, now - 86_400_000)) return labels.yesterday
+  try {
+    return new Intl.DateTimeFormat(lang || 'es', { day: 'numeric', month: 'short' }).format(ms)
+  } catch {
+    return ''
+  }
+}
+
 function makeWelcome(lang: string, user?: AuthUser): Message {
   const content = user?.name
     ? (greetingWithUser[lang] ?? greetingWithUser.es)(user)
@@ -207,11 +324,25 @@ function makeWelcome(lang: string, user?: AuthUser): Message {
   return { id: `welcome-${Date.now()}`, role: 'assistant', content }
 }
 
-/** Loads a saved conversation (and its timestamps) for this language, if any. */
-function loadPersisted(lang: string, user?: AuthUser): { messages: Message[]; timestamps: Record<string, number> } {
+const votesKey = (lang: string) => `${STORAGE_PREFIX}votes-${lang}`
+
+/** Loads a saved conversation (timestamps + votes) for this language, if any. */
+function loadPersisted(lang: string, user?: AuthUser): {
+  messages: Message[]; timestamps: Record<string, number>; votes: Record<string, 'up' | 'down'>
+} {
+  const loadVotes = (): Record<string, 'up' | 'down'> => {
+    if (typeof window === 'undefined') return {}
+    try {
+      const raw = window.localStorage.getItem(votesKey(lang))
+      return raw ? JSON.parse(raw) : {}
+    } catch {
+      return {}
+    }
+  }
+
   if (typeof window === 'undefined') {
     const welcome = makeWelcome(lang, user)
-    return { messages: [welcome], timestamps: { [welcome.id]: Date.now() } }
+    return { messages: [welcome], timestamps: { [welcome.id]: Date.now() }, votes: {} }
   }
   try {
     const raw = window.localStorage.getItem(storageKey(lang))
@@ -223,6 +354,7 @@ function loadPersisted(lang: string, user?: AuthUser): { messages: Message[]; ti
         return {
           messages: parsed.map(({ id, role, content }) => ({ id, role, content })),
           timestamps,
+          votes: loadVotes(),
         }
       }
     }
@@ -230,7 +362,7 @@ function loadPersisted(lang: string, user?: AuthUser): { messages: Message[]; ti
     // Corrupt or inaccessible storage — fall back to a fresh conversation.
   }
   const welcome = makeWelcome(lang, user)
-  return { messages: [welcome], timestamps: { [welcome.id]: Date.now() } }
+  return { messages: [welcome], timestamps: { [welcome.id]: Date.now() }, votes: loadVotes() }
 }
 
 export function ChatWidget({ lang, user }: Props) {
@@ -239,15 +371,16 @@ export function ChatWidget({ lang, user }: Props) {
   const [atBottom, setAtBottom] = useState(true)
   const [isOnline, setIsOnline] = useState(true)
   const [copiedId, setCopiedId] = useState<string | null>(null)
-  const [votes, setVotes]       = useState<Record<string, 'up' | 'down'>>({})
   const [attachment, setAttachment]           = useState<{ name: string; type: string; dataUrl: string } | null>(null)
   const [attachmentError, setAttachmentError] = useState<string | null>(null)
   const [isListening, setIsListening]         = useState(false)
   const [showNudge, setShowNudge]             = useState(false)
+  const [viewportHeight, setViewportHeight]   = useState<number | null>(null)
   const [, forceTick]           = useState(0)
 
   const scrollRef       = useRef<HTMLDivElement>(null)
   const messagesEndRef  = useRef<HTMLDivElement>(null)
+  const panelRef         = useRef<HTMLDivElement>(null)
   const inputRef         = useRef<HTMLInputElement>(null)
   const fileInputRef     = useRef<HTMLInputElement>(null)
   const recognitionRef   = useRef<any>(null)
@@ -262,6 +395,7 @@ export function ChatWidget({ lang, user }: Props) {
     [lang, user?.name, user?.company, user?.role], // eslint-disable-line react-hooks/exhaustive-deps
   )
   const timestampsRef = useRef<Record<string, number>>(persisted.timestamps)
+  const [votes, setVotes] = useState<Record<string, 'up' | 'down'>>(persisted.votes)
 
   // Contexto de navegación: URL actual + últimas páginas visitadas, para que
   // el backend pueda inyectárselo al prompt ("veo que estás en /servicios...").
@@ -410,6 +544,49 @@ export function ChatWidget({ lang, user }: Props) {
     }, NUDGE_DELAY_MS)
     return () => { if (nudgeTimerRef.current) clearTimeout(nudgeTimerRef.current) }
   }, [messages, isLoading, open])
+
+  useEffect(() => {
+    try { window.localStorage.setItem(votesKey(lang), JSON.stringify(votes)) } catch { /* ignore */ }
+  }, [votes, lang])
+
+  // Focus trap: mientras el diálogo está abierto, Tab no debe escaparse hacia
+  // el contenido de la página detrás. role="dialog" + aria-modal sin esto es
+  // solo cosmético para lectores de pantalla que sí respetan el trap.
+  useEffect(() => {
+    if (!open) return
+    const panel = panelRef.current
+    if (!panel) return
+    const handleTrap = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+      const focusables = Array.from(
+        panel.querySelectorAll<HTMLElement>('button, [href], input, textarea, [tabindex]:not([tabindex="-1"])')
+      ).filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null)
+      if (focusables.length === 0) return
+      const first = focusables[0]
+      const last = focusables[focusables.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    panel.addEventListener('keydown', handleTrap)
+    return () => panel.removeEventListener('keydown', handleTrap)
+  }, [open])
+
+  // En iOS/Android el teclado virtual no reduce el viewport "layout", así que
+  // un panel a 100% de alto queda tapado por el teclado. visualViewport sí
+  // refleja el espacio real disponible.
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.visualViewport) return
+    const vv = window.visualViewport
+    const update = () => setViewportHeight(vv.height)
+    update()
+    vv.addEventListener('resize', update)
+    return () => vv.removeEventListener('resize', update)
+  }, [])
 
   // Cortar cualquier respuesta en curso si el widget se desmonta.
   useEffect(() => {
@@ -565,9 +742,10 @@ export function ChatWidget({ lang, user }: Props) {
 
   const panelStyle: React.CSSProperties = isMobile
     ? {
-        position: 'fixed', inset: 0, zIndex: 1300,
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1300,
         display: 'flex', flexDirection: 'column',
-        backgroundColor: C.bg, width: '100%', height: '100%',
+        backgroundColor: C.bg, width: '100%',
+        height: viewportHeight ? `${viewportHeight}px` : '100dvh',
         borderRadius: 0,
       }
     : {
@@ -636,6 +814,7 @@ export function ChatWidget({ lang, user }: Props) {
       <AnimatePresence>
         {open && (
           <motion.div
+            ref={panelRef}
             role="dialog"
             aria-modal="true"
             aria-label={tx('title', lang)}
@@ -746,9 +925,22 @@ export function ChatWidget({ lang, user }: Props) {
                   const prevSameRole = i > 0 && messages[i - 1].role === m.role
                   const isLastAssistant = m.role === 'assistant' && i === messages.length - 1
                   const vote = votes[m.id]
+                  const ts = timestampsRef.current[m.id]
+                  const prevTs = i > 0 ? timestampsRef.current[messages[i - 1].id] : undefined
+                  const showDateSeparator = !!ts && (!prevTs || !isSameDay(ts, prevTs))
                   return (
+                  <Fragment key={m.id}>
+                    {showDateSeparator && (
+                      <Box sx={{ alignSelf: 'center', my: 0.25 }}>
+                        <Typography sx={{
+                          fontSize: '0.68rem', color: C.textMute, bgcolor: C.accentBg,
+                          px: 1.2, py: 0.3, borderRadius: '8px',
+                        }}>
+                          {formatDateLabel(ts, lang)}
+                        </Typography>
+                      </Box>
+                    )}
                     <motion.div
-                      key={m.id}
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={msgTransition}
@@ -758,7 +950,7 @@ export function ChatWidget({ lang, user }: Props) {
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: isUser ? 'flex-end' : 'flex-start',
-                        marginTop: prevSameRole ? -4 : 0,
+                        marginTop: prevSameRole && !showDateSeparator ? -4 : 0,
                       }}
                     >
                       <Box sx={{
@@ -769,9 +961,9 @@ export function ChatWidget({ lang, user }: Props) {
                         boxShadow: isUser ? `0 2px 8px ${alpha(C.accent, 0.28)}` : '0 1px 2px rgba(11,15,43,0.04)',
                         borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                         fontSize: '0.86rem', lineHeight: 1.6,
-                        whiteSpace: 'pre-wrap', wordBreak: 'break-word',
+                        whiteSpace: isUser ? 'pre-wrap' : 'normal', wordBreak: 'break-word',
                       }}>
-                        {m.content}
+                        {isUser ? m.content : renderMessageContent(m.content)}
                       </Box>
 
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 0.4, px: 0.5 }}>
@@ -831,6 +1023,7 @@ export function ChatWidget({ lang, user }: Props) {
                         )}
                       </Box>
                     </motion.div>
+                  </Fragment>
                   )
                 })}
 
