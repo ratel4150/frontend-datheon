@@ -3,7 +3,7 @@ export async function POST(req: Request) {
   const body = await req.json()
 
   const response = await fetch(
-    `${process.env.FASTAPI_URL}/api/v1/chat`,
+    `${process.env.FASTAPI_URL}/api/v1/chat/`,
     {
       method: 'POST',
       headers: {

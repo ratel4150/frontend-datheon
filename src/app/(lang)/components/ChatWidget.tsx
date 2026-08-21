@@ -158,6 +158,23 @@ export function ChatWidget({ lang }: Props) {
     onFinish: () => {
       if (!open) setUnread(u => u + 1)
     },
+    // El backend habla el protocolo de "data stream" de Vercel AI SDK
+    // (líneas "0:texto", "3:error", "d:finishReason") — lo dejamos explícito
+    // para no depender de que el default del SDK no cambie entre versiones.
+    streamProtocol: 'data',
+    // Si el proxy devuelve una parte de error (FastAPI caído, 4xx/5xx, etc.),
+    // no queremos que el SDK borre el mensaje del usuario de la lista: así
+    // "Reintentar" (reload()) puede reenviarlo tal cual, y el usuario no ve
+    // desaparecer lo que escribió.
+    keepLastMessageOnError: true,
+    onError: (err) => {
+      // Los aborts intencionales (botón "detener") no deberían llegar aquí,
+      // pero si tu versión del SDK los reporta igual, no vale la pena
+      // ensuciar la consola con ellos.
+      if (err?.name !== 'AbortError') {
+        console.error('[ChatWidget] fallo al hablar con /api/chat:', err)
+      }
+    },
   })
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -236,6 +253,13 @@ export function ChatWidget({ lang }: Props) {
     }
     if (addedNew) forceTick(t => t + 1)
   }, [messages, lang])
+
+  // Cortar cualquier respuesta en curso si el widget se desmonta (navegación
+  // a otra página, etc.) — mismo mecanismo que el botón "detener", pero
+  // automático, para no dejar streams huérfanos hacia /api/chat.
+  useEffect(() => {
+    return () => stop()
+  }, [stop])
 
   const handleKey = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
