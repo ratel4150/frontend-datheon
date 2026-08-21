@@ -6,6 +6,7 @@ export async function POST(req: Request) {
     `${process.env.FASTAPI_URL}/api/v1/chat/`,
     {
       method: 'POST',
+       redirect: 'manual',
       headers: {
         'Content-Type': 'application/json',
         'X-Internal-Key': process.env.INTERNAL_API_KEY ?? '',
